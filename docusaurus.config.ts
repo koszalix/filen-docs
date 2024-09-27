@@ -93,12 +93,12 @@ const config: Config = {
             },
             {
               label: 'Docs',
-              href: 'https://github.com/FilenCloudDienste/filen-docs',
+              href: 'https://github.com/JupiterPi/filen-docs',
             },
           ],
         },
       ],
-      copyright: `<a href="https://filen.io">Filen</a>`,
+      copyright: `<a href="https://filen.io" target="_blank">Filen</a>`,
     },
     prism: {
       theme: prismThemes.github,
