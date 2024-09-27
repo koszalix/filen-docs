@@ -14,7 +14,7 @@ const config: Config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'FilenCloudDienste', // Usually your GitHub org/user name.
+  organizationName: 'JupiterPi', // Usually your GitHub org/user name.
   projectName: 'filen-docs', // Usually your repo name.
 
   onBrokenLinks: 'throw',
