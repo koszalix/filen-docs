@@ -7,7 +7,7 @@ import styles from './index.module.css';
 
 function HomepageHeader() {
   return (
-    <header className={clsx('hero hero--primary', styles.heroBanner)}>
+    <header className={clsx(styles.heroBanner)}>
       <div className="container">
         <Heading as="h1" className="hero__title">
           Filen Developer Docs
@@ -21,7 +21,6 @@ function HomepageHeader() {
             to="/docs/api/introduction">
             API Docs
           </Link>
-          <div style={{ width: 20 }}></div>
           <Link
             className="button button--secondary button--lg"
             to="/docs/sdk/introduction">

@@ -54,7 +54,7 @@ const config: Config = {
     announcementBar: {
       id: 'unfinished-disclaimer',
       content: '<span style="font-weight: 500">These docs are still work in progress. Do not use them.</span>',
-      backgroundColor: '#ff6969',
+      backgroundColor: '#ec4545',
       isCloseable: false,
     },
     navbar: {
