@@ -1,7 +1,5 @@
-@font-face {
-  font-family: 'Geist Sans';
-  src: url('../../static/fonts/geist_sans.woff2') format('woff2');
-}
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 
 :root {
   /* colors */
@@ -14,13 +12,30 @@
   --ifm-color-primary-lightest: #ffffff;
   --ifm-background-color: #09090b;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  //--ifm-link-color: blue;
+  //--ifm-link-decoration: underline #989898;
 
   /* font */
-  --ifm-font-family-base: 'Geist Sans';
-  --ifm-heading-font-family: 'Geist Sans';
-  --ifm-font-family-monospace: 'Poppins-Regular';
+  --ifm-font-family-base: 'Inter';
+  --ifm-heading-font-family: 'Inter';
+  --ifm-font-family-monospace: 'Roboto Mono';
 }
 
 .footer--dark {
   --ifm-footer-background-color: var(--ifm-hero-background-color) !important;
+}
+
+/* don't capitalize admonition headers */
+.admonitionHeading_node_modules-\@docusaurus-theme-classic-lib-theme-Admonition-Layout-styles-module {
+  text-transform: inherit !important;
+}
+
+/* give links an underline */
+article a {
+  --ifm-link-decoration: underline #989898;
+}
+
+/* muted text */
+span.muted {
+  opacity: 50%;
 }

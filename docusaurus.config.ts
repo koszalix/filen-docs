@@ -66,15 +66,39 @@ const config: Config = {
       items: [
         {
           type: 'docSidebar',
-          sidebarId: 'apiSidebar',
+          sidebarId: 'webAppSidebar',
           position: 'left',
-          label: 'API',
+          label: 'Web',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'desktopAppSidebar',
+          position: 'left',
+          label: 'Desktop',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'mobileAppSidebar',
+          position: 'left',
+          label: 'Mobile',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'cliSidebar',
+          position: 'left',
+          label: 'CLI',
         },
         {
           type: 'docSidebar',
           sidebarId: 'sdkSidebar',
           position: 'left',
           label: 'SDK',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'apiSidebar',
+          position: 'left',
+          label: 'API',
         },
         {
           href: 'https://github.com/FilenCloudDienste',

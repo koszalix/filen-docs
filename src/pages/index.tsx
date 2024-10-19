@@ -10,6 +10,39 @@ function HomepageHeader() {
     <header className={clsx(styles.heroBanner)}>
       <div className="container">
         <Heading as="h1" className="hero__title">
+          Filen User Docs
+        </Heading>
+        <p className="hero__subtitle">
+          Get everything out of our Web App, Desktop App, Mobile App and CLI.
+        </p>
+        <div className={styles.buttons}>
+          <Link
+            className="button button--secondary button--lg"
+            to="/web-app/introduction">
+            Web App Docs
+          </Link>
+          <Link
+            className="button button--secondary button--lg"
+            to="/desktop-app/introduction">
+            Desktop App Docs
+          </Link>
+          <Link
+            className="button button--secondary button--lg"
+            to="/mobile-app/introduction">
+            Mobile App Docs
+          </Link>
+          <Link
+            className="button button--secondary button--lg"
+            to="/cli/introduction">
+            CLI Docs
+          </Link>
+        </div>
+      </div>
+      <div className="container" style={{padding: 60}}>
+        <div style={{display: "inline-block", width: 400, borderBottom: "1px solid #525252"}}></div>
+      </div>
+      <div className="container">
+        <Heading as="h1" className="hero__title">
           Filen Developer Docs
         </Heading>
         <p className="hero__subtitle">
@@ -18,13 +51,13 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/api/introduction">
-            API Docs
+            to="/sdk/introduction">
+            SDK Docs
           </Link>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/sdk/introduction">
-            SDK Docs
+            to="/api/introduction">
+            API Docs
           </Link>
         </div>
       </div>
