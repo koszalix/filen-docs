@@ -10,7 +10,7 @@ This guide will walk you through authenticating a user with Filen.
 
 First, call <ApiEndpointLink endpoint="/v3/auth/info"/> with your user's email to fetch the user's password encryption salt.
 
-Use [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) to derive a key from the raw password, using the fetched salt, 200 000 iterations and a key length of 64. Convert the result to a hex string and split it into two parts of equal length. The first part is the password used for logging in, the second part is the encryption master key. This is the corresponding code from the [TypeScript SDK](../sdk/introduction):
+Use [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) to derive a key from the raw password, using the fetched salt, 200 000 iterations and a key length of 64. Convert the result to a hex string and split it into two parts of equal length. The first part is the password used for logging in, the second part is the encryption master key. This is the corresponding code from the [TypeScript SDK](../../sdk/introduction):
 
 ```ts
 nodeCrypto.pbkdf2(password, salt, 200000, 512 / 8, "sha512", (_, result) => {

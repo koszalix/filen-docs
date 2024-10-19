@@ -50,11 +50,11 @@ const config: Config = {
       {
         api: {
           path: "docs/api/endpoints/openapi.json",
-          routeBasePath: "/api/endpoints",
+          routeBasePath: "/docs/api/endpoints",
         },
         docs: {
           sidebarPath: './sidebars.ts',
-          routeBasePath: "/",
+          routeBasePath: "/docs",
         },
         theme: {
           customCss: './src/css/custom.css',
