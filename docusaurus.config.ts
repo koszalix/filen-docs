@@ -1,6 +1,7 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import type * as OpenAPIPreset from 'docusaurus-preset-openapi';
 
 const config: Config = {
   title: 'Filen Docs',
@@ -29,7 +30,7 @@ const config: Config = {
   },
 
   presets: [
-    [
+    /*[
       'classic',
       {
         docs: {
@@ -43,6 +44,22 @@ const config: Config = {
           customCss: './src/css/custom.css',
         },
       } satisfies Preset.Options,
+    ],*/
+    [
+      "docusaurus-preset-openapi",
+      {
+        api: {
+          path: "docs/api/endpoints/openapi.json",
+          routeBasePath: "/api/endpoints",
+        },
+        docs: {
+          sidebarPath: './sidebars.ts',
+          routeBasePath: "/",
+        },
+        theme: {
+          customCss: './src/css/custom.css',
+        },
+      } satisfies OpenAPIPreset.Options,
     ],
   ],
 
