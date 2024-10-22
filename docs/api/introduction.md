@@ -21,21 +21,3 @@ There is also a [Go SDK](https://github.com/FilenCloudDienste/filen-sdk-go) that
 ## How these docs are structured
 
 In these guides, you will learn everything you need to know to access Filen in your own applications. The _Guides_ will walk you through how to authenticate with Filen, how to properly encrypt and decrypt data, and how to upload and download files. Refer to the _Endpoints_ for detailed information about the available API endpoints, which includes more features such as sharing, notes, contacts, chats, and other.
-
-## General information
-
-### API host
-
-The Filen API is located at `gateway.filen.io`, but there are more hosts for redundancy:
-- `gateway.filen.io`
-- `gateway.filen.net`
-- `gateway.filen-1.net`
-- `gateway.filen-2.net`
-- `gateway.filen-3.net`
-- `gateway.filen-4.net`
-- `gateway.filen-5.net`
-- `gateway.filen-6.net`
-
-For file transfers, there's also `ingest.filen.io`, `ingest.filen.net` etc. and `egest.filen.io`, `egest.filen.net` etc.
-
-When connecting to the API, you should choose a host at random and retry on other hosts when a request fails.
