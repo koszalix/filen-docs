@@ -1,13 +1,26 @@
+# Filen API all endpoints
+
 openapi: '3.0.3'
 info:
   title: Filen API
   description: |-
     The Filen API is used by Filen clients for uploading and downloading files, managing files and directories, sharing items, accessing notes and contacts, having chat conversations, managing user-specific settings, and more.
+    
+    ### API hosts
+    The Filen API is located at `gateway.filen.io`, but there are more hosts for redundancy:
+    - `gateway.filen.io`
+    - `gateway.filen.net`
+    - `gateway.filen-1.net`
+    - `gateway.filen-2.net`
+    - `gateway.filen-3.net`
+    - `gateway.filen-4.net`
+    - `gateway.filen-5.net`
+    - `gateway.filen-6.net`
 
-    Get general information about using the Filen API [in the documentation](https://docs.filen.io/docs/api/introduction).
+    For file transfers, there's also `ingest.filen.io`, `ingest.filen.net` etc. and `egest.filen.io`, `egest.filen.net` etc. When connecting to the API, you should choose a host at random and retry on other hosts when a request fails.
     
     ### API responses
-    All API responses follow the schema (TypeScript type definition):
+    All API responses follow the scheme (TypeScript type definition):
     ```ts
     {
       status: boolean, // indicates whether the request was successful
@@ -17,59 +30,13 @@ info:
     }
     ```
 
-    ### Format of timestamps
-    Some endpoints (where noted) provide timestamps that are *either in milliseconds or in seconds*. To handle them correctly, a calculation like this might be helpful: A timestamp is in millseconds if `Math.abs(millisecondsNow - timestamp) < Math.abs(millisecondsNow - timestamp*1000)`, otherwise it is in seconds.
+    ### Internal endpoints
+    There are a number of internal endpoints whose specifics are not documented here.
+    If you need them, you can infer their definitions and usage from [the TypeScript SDK's API wrapper](https://github.com/FilenCloudDienste/filen-sdk-ts/tree/main/src/api/v3).
 
-    ### Undocumented endpoints
-    There are a number of endpoints whose specifics are not documented here.
-    If you need them, you can infer their definitions and usage from [the TypeScript SDK's API wrappings](https://github.com/FilenCloudDienste/filen-sdk-ts/tree/main/src/api/v3).
-    - user-related:
-      - `/user/avatar` (upload an avatar)
-      - `/user/affiliate/payout` (request an affiliate payout)
-      - `/user/loginAlerts` (enable/disable login alerts)
-      - `/user/gdpr` (get user's GDPR information)
-      - `/user/delete` (delete account)
-      - `/user/delete/all` (delete all files and directories)
-      - `/user/didExportMasterKeys` (mark master keys as exported)
-      - `/user/lock` (acquire a lock for a resource, which last 60 seconds)
-      - `/user/invoice` (generate invoice)
-      - `/user/pushToken` (assign a push token)
-      - `/user/lastActive/desktop` (update last active timestamp for desktop)
-      - subscriptions:
-        - `/user/sub/create` (create a subscription checkout URL)
-        - `/user/sub/cancel` (cancel a subscription)
-      - password:
-        - `/user/password/forgot` (send a password recovery email)
-        - `/user/password/forgot/reset` (reset password using previously generated token)
-        - `/user/2fa/enable` (enable two-factor authentication)
-        - `/user/2fa/disable` (disable two-factor authentication)
-      - account info:
-        - `/user/personal/update` (update personal info)
-        - `/user/settings` (get user's settings)
-        - `/user/info` (get user's info)
-        - `/user/settings/email/change` (change email)
-        - `/user/settings/password/change` (change password)
-        - `/user/account` (get account data)
-        - `/user/profile` (get user profile)
-        - `/user/nickname` (update nickname)
-        - `/user/appearOffline` (update appear offline)
-    - file versioning:
-      - `/user/versioning` (enable/disable versioning)
-      - `/user/delete/versions` (delete all file versions)
-      - `/file/version/restore` (restore a file version)
-      - `/file/versions` (get all versions of a file)
-    - realtime events:
-      - `/user/events` (get user events)
-      - `/user/event` (get event info)
-      - -> for a full description of the realtime events API, see [the SDK's implementations](https://github.com/FilenCloudDienste/filen-sdk-ts/blob/main/src/socket/index.ts)
-    - `/versions` (get current client versions)
-    - `/mobile/offline/files` (get offline files info)
-    
-    ### API hosts
-    The Filen API is located at `gateway.filen.io`, but besides the host `filen.io` you can also use `filen.net`, `filen-1.net`, `filen-2.net`, `filen-3.net`, `filen-4.net`, `filen-5.net` or `filen-6.net`. This can be useful in order to work around browsers limiting the number of concurrent connections to a host. In your implementation, you can choose a host at random for every request and retry it on another host should it fail.
   version: v3
 servers:
-- url: https://gateway.filen.io/v3
+  - url: https://gateway.filen.io/v3
 externalDocs:
   description: Get general information about usage of the Filen API at docs.filen.io
   url: "https://docs.filen.io/docs/api/introduction"
@@ -105,7 +72,7 @@ paths:
     post:
       tags: [File Transfers]
       summary: Mark an upload completed
-      description: Marks an upload as completed. Use this after you've uploaded file chunks to the Ingest API. #todo more detailed description
+      description: Marks an upload as completed. Use this after you've uploaded file chunks to the Ingest API. #todo
       requestBody:
         content:
           application/json:
@@ -120,7 +87,7 @@ paths:
                   type: string
                   description: the file name (metadata-encrypted)
                   example: (file name, metadata-encrypted)
-                nameHashed: 
+                nameHashed:
                   type: string
                   description: the hex-encoded SHA-512 hash of the file name
                   example: (SHA-512 hash of file name, as hex)
@@ -143,18 +110,17 @@ paths:
                 metadata:
                   type: string
                   description: |-
-                    the file's metadata (metadata-encrypted) following the schema (TypeScript type definition):
+                    the file's metadata (stringified and metadata-encrypted) following the schema (TypeScript type definition):
                     ```ts
                     {
                       name: string, // the file name
                       size: number, // the file size in bytes
                       mime: string, // the file's MIME type
                       key: string, // the key used to encrypt the file chunks
-                      lastModified: number, // the file's modification time in milliseconds or seconds
-                      creation: number, // the file's creation time in milliseconds or seconds
+                      lastModified: number, // the file's modification time in milliseconds
+                      creation: string, // the file's creation time in milliseconds
                     }
                     ```
-                    See these docs' introduction on how to handle milliseconds/seconds timestamps.
                   example: (-> see description)
                 version:
                   type: string
@@ -171,18 +137,305 @@ paths:
           content:
             application/json:
               schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  code:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      chunks:
+                        type: number
+                        description: the number of chunks uploaded
+                        example: (number of chunks uploaded)
+                      size:
+                        type: number
+                        description: the file's total size in bytes
+                        example: (file size in bytes)
+  /user/affiliate/payout:
+    post:
+      tags: [(internal)]
+      summary: Request an affiliate payout (internal)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                method:
+                  type: string
+                address:
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response"
+  /user/sub/create:
+    post:
+      tags: [(internal)]
+      summary: Create a subscription checkout URL (internal)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                method:
+                  type: string
+                  description: paypal | stripe | crypto
+                planId:
+                  type: number
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
                 allOf:
-                - $ref: "#/components/schemas/response"
-                - type: object
-                  properties:
-                    chunks:
-                      type: number
-                      description: the number of chunks uploaded
-                      example: (number of chunks uploaded)
-                    size:
-                      type: number
-                      description: the file's total size in bytes
-                      example: (file size in bytes)
+                  - $ref: "#/components/schemas/response"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          url:
+                            type: string
+  ################################################################
+  /user/avatar:
+    post:
+      tags: [(internal)]
+      summary: Upload an avatar (internal)
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  example: base64 string
+                hash:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      avatarURL:
+                        type: string
+                        example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/password/forgot:
+    post:
+      tags:
+        - user
+      description: Send out a password recovery email
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/password/forgot/reset:
+    post:
+      tags:
+        - user
+      description: Reset password using previously generated token
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: string
+                password:
+                  type: string
+                  example: string
+                authVersion:
+                  type: string
+                  example: number
+                salt:
+                  type: string
+                  example: string
+                hasRecoveryKeys:
+                  type: string
+                  example: boolean
+                newMasterKeys:
+                  type: string
+                  example: string?
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/sub/cancel:
+    post:
+      tags:
+        - user
+      description: Cancel a subscription
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/personal/update:
+    post:
+      tags:
+        - user
+      description: Update personal information
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  example: string | __NONE__
+                lastName:
+                  type: string
+                  example: string | __NONE__
+                companyName:
+                  type: string
+                  example: string | __NONE__
+                vatId:
+                  type: string
+                  example: string | __NONE__
+                street:
+                  type: string
+                  example: string | __NONE__
+                streetNumber:
+                  type: string
+                  example: string | __NONE__
+                city:
+                  type: string
+                  example: string | __NONE__
+                postalCode:
+                  type: string
+                  example: string | __NONE__
+                country:
+                  type: string
+                  example: string | __NONE__
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
   /user/baseFolder: #edited
     get:
       tags: [Items]
@@ -196,15 +449,640 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: "#/components/schemas/response"
-                - type: object
-                  properties:
-                    data:
-                      type: object
-                      properties:
-                        uuid:
-                          type: string
-                          description: the user's root directory's UUID
+                  - $ref: "#/components/schemas/response"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          uuid:
+                            type: string
+                            description: the user's root directory's UUID
+  /user/versioning:
+    post:
+      tags:
+        - user
+      description: Enable or disable versioning
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: string
+                  example: 0 | 1
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/loginAlerts:
+    post:
+      tags:
+        - user
+      description: Enable or disable login alerts
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: string
+                  example: 0 | 1
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/2fa/enable:
+    post:
+      tags:
+        - user
+      description: Enable 2FA
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      recoveryKeys:
+                        type: string
+                        example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/2fa/disable:
+    post:
+      tags:
+        - user
+      description: Disable 2FA
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      newKey:
+                        type: string
+                        example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/gdpr:
+    get:
+      tags:
+        - user
+      description: Fetch the user's GDPR info
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          email:
+                            type: string
+                            example: string
+                          lastActiveUnixTimestamp:
+                            type: string
+                            example: number
+                          lastActiveChatUnixTimestamp:
+                            type: string
+                            example: number
+                          lastIPAddress:
+                            type: string
+                            example: string
+                          nickName:
+                            type: string
+                            example: string
+                          personal:
+                            type: object
+                            properties:
+                              firstName:
+                                type: string
+                                example: string | null
+                              lastName:
+                                type: string
+                                example: string | null
+                              companyName:
+                                type: string
+                                example: string | null
+                              vatId:
+                                type: string
+                                example: string | null
+                              street:
+                                type: string
+                                example: string | null
+                              streetNumber:
+                                type: string
+                                example: string | null
+                              city:
+                                type: string
+                                example: string | null
+                              postalCode:
+                                type: string
+                                example: string | null
+                              country:
+                                type: string
+                                example: string | null
+                      events:
+                        type: object
+                        properties:
+                          ipAddresses:
+                            type: string
+                            example: "string[]"
+                          userAgents:
+                            type: string
+                            example: "string[]"
+                xml:
+                  name: main
+  /user/delete:
+    post:
+      tags:
+        - user
+      description: Account deletion
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                twoFactorKey:
+                  type: string
+                  example: string | XXXXXX
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/delete/all:
+    post:
+      tags:
+        - user
+      description: Delete all files and folders
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/didExportMasterKeys:
+    post:
+      tags:
+        - user
+      description: Mark master keys as exported
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/lock:
+    post:
+      tags:
+        - user
+      description: "Acquire a lock for a given resource. Locks are being held for\
+        \ 60 seconds and need to be refreshed, otherwise they expire. "
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: UUIDv4
+                resource:
+                  type: string
+                  example: string
+                type:
+                  type: string
+                  example: acquire | release | status | refresh
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      acquired:
+                        type: string
+                        example: boolean
+                      released:
+                        type: string
+                        example: boolean
+                      refreshed:
+                        type: string
+                        example: boolean
+                      resource:
+                        type: string
+                        example: string
+                      status:
+                        type: string
+                        example: locked?
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/delete/versions:
+    post:
+      tags:
+        - user
+      description: Delete all file versions
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/settings:
+    get:
+      tags:
+        - user
+      description: Fetch the user's settings
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                        example: string
+                      twoFactorKey:
+                        type: string
+                        example: string
+                      twoFactorEnabled:
+                        type: string
+                        example: 0 | 1
+                      versionedFiles:
+                        type: string
+                        example: number
+                      versionedStorage:
+                        type: string
+                        example: number
+                      unfinishedFiles:
+                        type: string
+                        example: number
+                      unfinishedStorage:
+                        type: string
+                        example: number
+                      storageUsed:
+                        type: string
+                        example: number
+                xml:
+                  name: main
+  /user/info:
+    get:
+      tags:
+        - user
+      description: Fetch the user's info
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: number
+                      email:
+                        type: string
+                        example: string
+                      maxStorage:
+                        type: string
+                        example: number
+                      storageUsed:
+                        type: string
+                        example: number
+                      isPremium:
+                        type: string
+                        example: 0 | 1
+                      avatarURL:
+                        type: string
+                        example: string | url | dataURI | null
+                      baseFolderUUID:
+                        type: string
+                        example: uuidv4
+                xml:
+                  name: main
+  /user/settings/email/change:
+    post:
+      tags:
+        - user
+      description: Change email address
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: string
+                password:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/settings/password/change:
+    post:
+      tags:
+        - user
+      description: Change password
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  example: string
+                currentPassword:
+                  type: string
+                  example: string
+                salt:
+                  type: string
+                  example: string
+                masterKeys:
+                  type: string
+                  example: string
+                authVersion:
+                  type: string
+                  example: number
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      newAPIKey:
+                        type: string
+                        example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
   /user/masterKeys: #edited
     post:
       tags: [User]
@@ -229,20 +1107,20 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: "#/components/schemas/response"
-                - type: object
-                  properties:
-                    data:
-                      type: object
-                      properties:
-                        keys:
-                          type: string
-                          description: the user's saved master keys, joined with `"|"` (metadata-encrypted)
-                          example: (master keys joined with '|', metadata-encrypted)
+                  - $ref: "#/components/schemas/response"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          keys:
+                            type: string
+                            description: the user's saved master keys, joined with `"|"` (metadata-encrypted)
+                            example: (master keys joined with '|', metadata-encrypted)
   /user/keyPair/info:
     get:
       tags:
-      - user
+        - user
       description: Retrieve encrypted user keypair
       responses:
         "200":
@@ -275,7 +1153,7 @@ paths:
   /user/keyPair/update:
     post:
       tags:
-      - user
+        - user
       description: Update user keypair
       requestBody:
         description: Body JSON
@@ -314,7 +1192,7 @@ paths:
   /user/keyPair/set:
     post:
       tags:
-      - user
+        - user
       description: Set user keypair
       requestBody:
         description: Body JSON
@@ -350,10 +1228,148 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
+  /user/events:
+    post:
+      tags:
+        - user
+      description: Retrieve user events
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                timestamp:
+                  type: string
+                  example: number
+                filter:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      events:
+                        type: string
+                        example: array
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/event:
+    post:
+      tags:
+        - user
+      description: Retrieve event info
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: number
+                      uuid:
+                        type: string
+                        example: string
+                      type:
+                        type: string
+                        example: string
+                      info:
+                        type: string
+                        example: object
+                      timestamp:
+                        type: string
+                        example: number
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/invoice:
+    post:
+      tags:
+        - user
+      description: Generate invoice from UUID
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: string
+                    example: base64
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
   /user/publicKey:
     post:
       tags:
-      - user
+        - user
       description: Retrieve a user's public key
       requestBody:
         description: Body JSON
@@ -392,6 +1408,285 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
+  /user/nickname:
+    post:
+      tags:
+        - user
+      description: Update nickname
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nickname:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/appearOffline:
+    post:
+      tags:
+        - user
+      description: Update appearOffline
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                appearOffline:
+                  type: string
+                  example: boolean
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/pushToken:
+    post:
+      tags:
+        - user
+      description: Assign a push token to your account
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                platform:
+                  type: string
+                  example: ios | android | web
+                token:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/lastActive/desktop:
+    post:
+      tags:
+        - user
+      description: Update last active timestamp for desktop platforms
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                timestamp:
+                  type: string
+                  example: number
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/account:
+    get:
+      tags:
+        - user
+      description: Retrieve user account data
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                        example: string
+                      uploads:
+                        type: string
+                        example: number
+                      folders:
+                        type: string
+                        example: number
+                      storage:
+                        type: string
+                        example: number
+                      maxStorage:
+                        type: string
+                        example: number
+                      isPremium:
+                        type: string
+                        example: 0 | 1 | boolean
+                      plans:
+                        type: string
+                        example: array
+                      invoices:
+                        type: string
+                        example: array
+                      subsInvoices:
+                        type: string
+                        example: array
+                      subs:
+                        type: string
+                        example: array
+                      referCount:
+                        type: string
+                        example: number
+                      referStorage:
+                        type: string
+                        example: number
+                      refLimit:
+                        type: string
+                        example: number
+                      refStorage:
+                        type: string
+                        example: number
+                      refId:
+                        type: string
+                        example: string
+                      affId:
+                        type: string
+                        example: string
+                      affRate:
+                        type: string
+                        example: number
+                      affCount:
+                        type: string
+                        example: number
+                      affEarnings:
+                        type: string
+                        example: number
+                      affBalance:
+                        type: string
+                        example: number
+                      avatarURL:
+                        type: string
+                        example: string
+                      nickName:
+                        type: string
+                        example: string
+                      displayName:
+                        type: string
+                        example: string
+                      appearOffline:
+                        type: string
+                        example: boolean
+                      didExportMasterKeys:
+                        type: string
+                        example: boolean
+                      personal:
+                        type: object
+                        properties:
+                          firstName:
+                            type: string
+                            example: string
+                          lastName:
+                            type: string
+                            example: string
+                          companyName:
+                            type: string
+                            example: string
+                          vatId:
+                            type: string
+                            example: string
+                          street:
+                            type: string
+                            example: string
+                          streetNumber:
+                            type: string
+                            example: string
+                          city:
+                            type: string
+                            example: string
+                          postalCode:
+                            type: string
+                            example: string
+                          country:
+                            type: string
+                            example: string
+                xml:
+                  name: main
   /trash/empty: #edited
     post:
       tags: [Items]
@@ -463,32 +1758,77 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: "#/components/schemas/response"
-                - type: object
-                  properties:
-                    data: 
-                      type: object
-                      properties:
-                        apiKey:
-                          type: string
-                          description: the API Key
-                          example: (API key)
-                        masterKeys:
-                          type: string
-                          description: the master keys
-                          example: (master keys)
-                        publicKey:
-                          type: string
-                          description: the public key
-                          example: (public key)
-                        privateKey:
-                          type: string
-                          description: the private key
-                          example: (private key)
+                  - $ref: "#/components/schemas/response"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          apiKey:
+                            type: string
+                            description: the API Key
+                            example: (API key)
+                          masterKeys:
+                            type: string
+                            description: the master keys
+                            example: (master keys)
+                          publicKey:
+                            type: string
+                            description: the public key
+                            example: (public key)
+                          privateKey:
+                            type: string
+                            description: the private key
+                            example: (private key)
+  /register:
+    post:
+      tags:
+        - auth
+      description: Register
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: string
+                password:
+                  type: string
+                  example: string
+                salt:
+                  type: string
+                  example: string
+                authVersion:
+                  type: string
+                  example: number
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
   /confirmation/send:
     post:
       tags:
-      - auth
+        - auth
       description: Resend a confirmation email
       requestBody:
         description: Body JSON
@@ -548,43 +1888,44 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: "#/components/schemas/response"
-                - type: object
-                  properties:
-                    uuid:
-                      type: string
-                      description: the directory's UUID
-                      example: (directory UUID)
-                    nameEncrypted:
-                      type: string
-                      description: the directory's name (metadata-encrypted)
-                      example: (directory name, metadata-encrypted)
-                    nameHashed:
-                      type: string
-                      description: the hex-encoded SHA-512 hash of the directory's name
-                      example: (SHA-512 hash of directory name, hex-encoded)
-                    parent:
-                      type: string
-                      description: the parente directory's UUID
-                      example: (parent directory UUID)
-                    trash:
-                      type: boolean
-                      description: whether this directory is in trash
-                      example: (whether the directory is trashed)
-                    favorited:
-                      type: boolean
-                      description: whether this directory is favorited
-                      example: (whether the directory is favorited)
-                    color:
-                      type: string
-                      description: the directory's assigned color (as hex code `#000000` or valid CSS value), or `null` if none is set
-                      example: (directory color, or null)
+                  - $ref: "#/components/schemas/response"
+                  - type: object
+                    properties:
+                      uuid:
+                        type: string
+                        description: the directory's UUID
+                        example: (directory UUID)
+                      nameEncrypted:
+                        type: string
+                        description: the directory's name (metadata-encrypted)
+                        example: (directory name, metadata-encrypted)
+                      nameHashed:
+                        type: string
+                        description: the hex-encoded SHA-512 hash of the directory's name
+                        example: (SHA-512 hash of directory name, hex-encoded)
+                      parent:
+                        type: string
+                        description: the parente directory's UUID
+                        example: (parent directory UUID)
+                      trash:
+                        type: boolean
+                        description: whether this directory is in trash
+                        example: (whether the directory is trashed)
+                      favorited:
+                        type: boolean
+                        description: whether this directory is favorited
+                        example: (whether the directory is favorited)
+                      color:
+                        type: string
+                        description: the directory's assigned color (as hex code `#000000` or valid CSS value), or `null` if none is set
+                        example: (directory color, or null)
   /dir/content:
     post:
-      tags: [Directories]
-      summary: Get directory content
-      description: Returns information about the files and directories inside a directory.
+      tags:
+        - dir
+      description: Retrieve folder content
       requestBody:
+        description: Body JSON
         content:
           application/json:
             schema:
@@ -592,109 +1933,35 @@ paths:
               properties:
                 uuid:
                   type: string
-                  description: the directory's uuid, or `"favorites"`, `"recents"`, `"links"`, `"trash"` for special directories
-                  example: ('favorites', 'recents', 'links', 'trash', or directory uuid)
-                foldersOnly:
-                  type: boolean
-                  description: whether only directories should be returned (optional; defaults to `false`)
-                  example: (whether to only return directories, default = false)
+                  example: favorites | recents | links | trash | uuidv4
         required: true
-      security: [api_key: []]
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                allOf:
-                - $ref: "#/components/schemas/response"
-                - type: object
-                  properties:
-                    data:
-                      type: object
-                      properties:
-                        uploads:
-                          type: array
-                          description: the files inside this directory
-                          items:
-                            type: object
-                            properties:
-                              uuid: 
-                                type: string
-                                description: the file's UUID
-                                example: (file uuid)
-                              metadata:
-                                type: string
-                                description: |-
-                                  the file's metadata (metadata-encrypted) following the schema (TypeScript type definition):
-                                  ```ts
-                                  {
-                                    name: string, // the file name
-                                    size: number, // the file size in bytes
-                                    mime: string, // the file's MIME type
-                                    key: string, // the key used to encrypt the file chunks
-                                    lastModified: number, // the file's modification time in milliseconds
-                                    creation: number, // the file's creation time in milliseconds
-                                  }
-                                  ```
-                              rm: 
-                                type: string
-                                description: (#todo)
-                              timestamp:
-                                type: integer
-                                description: (#todo)
-                              chunks:
-                                type: integer
-                                description: the number of chunks this file is split into
-                                example: (number of chunks)
-                              size: 
-                                type: integer
-                                description: the file's size in bytes (#todo)
-                              bucket:
-                                type: string
-                                description: the storage bucket this file is stored in (needed for downloading it)
-                                example: (storage bucket)
-                              region:
-                                type: string
-                                description: the storage region this file is stored in (needed for downloading it)
-                                example: (storage region)
-                              parent:
-                                type: string
-                                description: the parent directory's UUID
-                                example: (parent directory UUID)
-                              version:
-                                type: integer
-                                description: the file encryption version, which is `1` or `2`
-                                example: (file encryption version)
-                              favorited:
-                                type: integer
-                                description: whether this file is favorited, expressed as `1` or `0`
-                                example: (whether this file is favorited, as 1 or 0)
-############################################### generally, edited up until this point
-                        folders:
-                          type: array
-                          description: the directories inside this directory
-                          items:
-                            type: object
-                            properties:
-                              uuid:
-                                type: string
-                              name:
-                                type: string
-                              parent:
-                                type: string
-                              color:
-                                type: string
-                              timestamp:
-                                type: integer
-                              is_sync:
-                                type: integer
-                              is_default:
-                                type: integer
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: string
+                    example: object | array | undefined
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
   /dir/restore:
     post:
       tags:
-      - dir
+        - dir
       description: Restore a directory from the trash
       requestBody:
         description: Body JSON
@@ -730,7 +1997,7 @@ paths:
   /dir/create:
     post:
       tags:
-      - dir
+        - dir
       description: Create a folder
       requestBody:
         description: Body JSON
@@ -781,7 +2048,7 @@ paths:
   /dir/link/edit:
     post:
       tags:
-      - dir
+        - dir
       description: Edit a folder's public link
       requestBody:
         description: Body JSON
@@ -832,7 +2099,7 @@ paths:
   /dir/download:
     post:
       tags:
-      - dir
+        - dir
       description: Retrieve complete folder tree (flattened)
       requestBody:
         description: Body JSON
@@ -877,7 +2144,7 @@ paths:
   /dir/link/remove:
     post:
       tags:
-      - dir
+        - dir
       description: Remove a public link from a folder
       requestBody:
         description: Body JSON
@@ -913,7 +2180,7 @@ paths:
   /dir/download/link:
     post:
       tags:
-      - dir
+        - dir
       description: Retrieve complete folder tree of a public link (flattened)
       requestBody:
         description: Body JSON
@@ -964,7 +2231,7 @@ paths:
   /dir/download/shared:
     post:
       tags:
-      - dir
+        - dir
       description: Retrieve complete folder tree of a shared folder (flattened)
       requestBody:
         description: Body JSON
@@ -1009,7 +2276,7 @@ paths:
   /dir/link/status:
     post:
       tags:
-      - dir
+        - dir
       description: Retrieve status of a folder public link
       requestBody:
         description: Body JSON
@@ -1069,7 +2336,7 @@ paths:
   /dir/link/add:
     post:
       tags:
-      - dir
+        - dir
       description: Add an item to a folder public link
       requestBody:
         description: Body JSON
@@ -1123,7 +2390,7 @@ paths:
   /dir/tree:
     post:
       tags:
-      - dir
+        - dir
       description: "Get a complete directory tree (meant for syncing, flattened)"
       requestBody:
         description: Body JSON
@@ -1174,7 +2441,7 @@ paths:
   /dir/color:
     post:
       tags:
-      - dir
+        - dir
       description: Change folder color
       requestBody:
         description: Body JSON
@@ -1213,7 +2480,7 @@ paths:
   /dir/size:
     post:
       tags:
-      - dir
+        - dir
       description: Retrieve directory size
       requestBody:
         description: Body JSON
@@ -1264,7 +2531,7 @@ paths:
   /dir/size/link:
     post:
       tags:
-      - dir
+        - dir
       description: Retrieve public link directory size
       requestBody:
         description: Body JSON
@@ -1309,7 +2576,7 @@ paths:
   /file:
     post:
       tags:
-      - file
+        - file
       description: Retrieve file info
       requestBody:
         description: Body JSON
@@ -1387,7 +2654,7 @@ paths:
   /file/link/status:
     post:
       tags:
-      - file
+        - file
       description: Retrieve file public link status
       requestBody:
         description: Body JSON
@@ -1441,10 +2708,73 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
+  /file/version/restore:
+    post:
+      tags:
+        - file
+      description: Restore a file version
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+                current:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uuid:
+                    type: string
+                    example: uuidv4
+                  currentUUID:
+                    type: string
+                    example: uuidv4
+                  metadata:
+                    type: string
+                    example: string
+                  bucket:
+                    type: string
+                    example: string
+                  region:
+                    type: string
+                    example: string
+                  chunks:
+                    type: string
+                    example: number
+                  parent:
+                    type: string
+                    example: string
+                  rm:
+                    type: string
+                    example: string
+                  timestamp:
+                    type: string
+                    example: number
+                  version:
+                    type: string
+                    example: number
+                  favorited:
+                    type: string
+                    example: 0 | 1
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
   /file/link/edit:
     post:
       tags:
-      - file
+        - file
       description: Edit a file's public link
       requestBody:
         description: Body JSON
@@ -1501,7 +2831,7 @@ paths:
   /file/restore:
     post:
       tags:
-      - file
+        - file
       description: Restore a file from the trash
       requestBody:
         description: Body JSON
@@ -1537,7 +2867,7 @@ paths:
   /file/present:
     post:
       tags:
-      - file
+        - file
       description: Check if a file exists
       requestBody:
         description: Body JSON
@@ -1585,7 +2915,7 @@ paths:
   /dir/move:
     post:
       tags:
-      - dir
+        - dir
       description: Move a directory
       requestBody:
         description: Body JSON
@@ -1624,7 +2954,7 @@ paths:
   /dir/present:
     post:
       tags:
-      - dir
+        - dir
       description: Check if a directory exists
       requestBody:
         description: Body JSON
@@ -1669,7 +2999,7 @@ paths:
   /dir/exists:
     post:
       tags:
-      - dir
+        - dir
       description: Check if a directory exists inside a parent with a given name
       requestBody:
         description: Body JSON
@@ -1717,7 +3047,7 @@ paths:
   /dir/rename:
     post:
       tags:
-      - dir
+        - dir
       description: Rename a directory
       requestBody:
         description: Body JSON
@@ -1759,7 +3089,7 @@ paths:
   /file/exists:
     post:
       tags:
-      - file
+        - file
       description: Check if a file exists inside a parent with a given name
       requestBody:
         description: Body JSON
@@ -1807,7 +3137,7 @@ paths:
   /file/move:
     post:
       tags:
-      - file
+        - file
       description: Move a file
       requestBody:
         description: Body JSON
@@ -1846,7 +3176,7 @@ paths:
   /file/rename:
     post:
       tags:
-      - file
+        - file
       description: Rename a file
       requestBody:
         description: Body JSON
@@ -1888,10 +3218,54 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
+  /file/versions:
+    post:
+      tags:
+        - file
+      description: Retrieve all versions of a file
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      versions:
+                        type: string
+                        example: "{ uuid: uuid, metadata: string, bucket: string,\
+                          \ region: string, chunks: number, rm: string, timestamp:\
+                          \ number, version: number }[]"
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
   /file/delete/permanent:
     post:
       tags:
-      - file
+        - file
       description: Delete a file permanently
       requestBody:
         description: Body JSON
@@ -1927,7 +3301,7 @@ paths:
   /file/trash:
     post:
       tags:
-      - file
+        - file
       description: Move a file to the trash
       requestBody:
         description: Body JSON
@@ -1963,7 +3337,7 @@ paths:
   /dir/trash:
     post:
       tags:
-      - dir
+        - dir
       description: Move a directory to the trash
       requestBody:
         description: Body JSON
@@ -1999,7 +3373,7 @@ paths:
   /dir/delete/permanent:
     post:
       tags:
-      - dir
+        - dir
       description: Delete a directory permanently
       requestBody:
         description: Body JSON
@@ -2032,10 +3406,46 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
+  /versions:
+    get:
+      tags:
+        - misc
+      description: Retrieve current client versions
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      mobile:
+                        type: string
+                        example: string
+                      desktop:
+                        type: string
+                        example: string
+                      web:
+                        type: string
+                        example: string
+                xml:
+                  name: main
   /shared/in:
     post:
       tags:
-      - shared
+        - shared
       description: Get shared in items
       requestBody:
         description: Body JSON
@@ -2080,7 +3490,7 @@ paths:
   /shared/out:
     post:
       tags:
-      - shared
+        - shared
       description: Get shared out items
       requestBody:
         description: Body JSON
@@ -2128,7 +3538,7 @@ paths:
   /item/favorite:
     post:
       tags:
-      - item
+        - item
       description: Change item favorite status
       requestBody:
         description: Body JSON
@@ -2182,7 +3592,7 @@ paths:
   /item/share:
     post:
       tags:
-      - item
+        - item
       description: Share an item to a user
       requestBody:
         description: Body JSON
@@ -2230,7 +3640,7 @@ paths:
   /item/shared/rename:
     post:
       tags:
-      - item
+        - item
       description: Rename a shared item
       requestBody:
         description: Body JSON
@@ -2272,7 +3682,7 @@ paths:
   /item/linked/rename:
     post:
       tags:
-      - item
+        - item
       description: Rename a public linked folder item
       requestBody:
         description: Body JSON
@@ -2314,7 +3724,7 @@ paths:
   /file/link/password:
     post:
       tags:
-      - file
+        - file
       description: Check if a file public link is password protected
       requestBody:
         description: Body JSON
@@ -2359,7 +3769,7 @@ paths:
   /file/link/info:
     post:
       tags:
-      - file
+        - file
       description: Get public link info of a file
       requestBody:
         description: Body JSON
@@ -2434,7 +3844,7 @@ paths:
   /dir/link/info:
     post:
       tags:
-      - dir
+        - dir
       description: Get public link info of a folder
       requestBody:
         description: Body JSON
@@ -2488,7 +3898,7 @@ paths:
   /dir/link/content:
     post:
       tags:
-      - dir
+        - dir
       description: Get public link info of a folder
       requestBody:
         description: Body JSON
@@ -2539,7 +3949,7 @@ paths:
   /dir/shared:
     post:
       tags:
-      - dir
+        - dir
       description: Check if a folder is shared
       requestBody:
         description: Body JSON
@@ -2584,7 +3994,7 @@ paths:
   /dir/linked:
     post:
       tags:
-      - dir
+        - dir
       description: Check if a folder is public linked
       requestBody:
         description: Body JSON
@@ -2629,7 +4039,7 @@ paths:
   /item/linked:
     post:
       tags:
-      - item
+        - item
       description: Check if an item is in a public link
       requestBody:
         description: Body JSON
@@ -2674,7 +4084,7 @@ paths:
   /item/shared:
     post:
       tags:
-      - item
+        - item
       description: Check if an item is shared
       requestBody:
         description: Body JSON
@@ -2719,7 +4129,7 @@ paths:
   /item/shared/in/remove:
     post:
       tags:
-      - item
+        - item
       description: Remove an item that is shared with your account
       requestBody:
         description: Body JSON
@@ -2755,7 +4165,7 @@ paths:
   /item/shared/out/remove:
     post:
       tags:
-      - item
+        - item
       description: Remove an item that is shared with another user
       requestBody:
         description: Body JSON
@@ -2791,10 +4201,55 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
+  /mobile/offline/files:
+    post:
+      tags:
+        - mobile
+      description: Get offline files info
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: string
+                  example: "uuidv4[]"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      requested:
+                        type: string
+                        example: uuidv4
+                      info:
+                        type: string
+                        example: array
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
   /chat/send:
     post:
       tags:
-      - chat
+        - chat
       description: Send a chat message
       requestBody:
         description: Body JSON
@@ -2836,7 +4291,7 @@ paths:
   /chat/mute:
     post:
       tags:
-      - chat
+        - chat
       description: Mute/unmute a chat
       requestBody:
         description: Body JSON
@@ -2875,7 +4330,7 @@ paths:
   /chat/edit:
     post:
       tags:
-      - chat
+        - chat
       description: Edit a chat message
       requestBody:
         description: Body JSON
@@ -2917,7 +4372,7 @@ paths:
   /chat/message/embed/disable:
     post:
       tags:
-      - chat
+        - chat
       description: Disable message embed
       requestBody:
         description: Body JSON
@@ -2953,7 +4408,7 @@ paths:
   /chat/conversations/delete:
     post:
       tags:
-      - chat
+        - chat
       description: Delete a conversation
       requestBody:
         description: Body JSON
@@ -2989,7 +4444,7 @@ paths:
   /chat/conversations/leave:
     post:
       tags:
-      - chat
+        - chat
       description: Leave a conversation
       requestBody:
         description: Body JSON
@@ -3025,7 +4480,7 @@ paths:
   /chat/messages:
     post:
       tags:
-      - chat
+        - chat
       description: Fetch chat messages
       requestBody:
         description: Body JSON
@@ -3067,7 +4522,7 @@ paths:
   /chat/delete:
     post:
       tags:
-      - chat
+        - chat
       description: Delete a chat message
       requestBody:
         description: Body JSON
@@ -3103,7 +4558,7 @@ paths:
   /chat/typing:
     post:
       tags:
-      - chat
+        - chat
       description: Send typing events
       requestBody:
         description: Body JSON
@@ -3142,7 +4597,7 @@ paths:
   /chat/conversations:
     get:
       tags:
-      - chat
+        - chat
       description: Fetch conversations
       responses:
         "200":
@@ -3169,7 +4624,7 @@ paths:
   /chat/unread:
     get:
       tags:
-      - chat
+        - chat
       description: Fetch count of unread chat messages
       responses:
         "200":
@@ -3199,7 +4654,7 @@ paths:
   /chat/conversations/unread:
     post:
       tags:
-      - chat
+        - chat
       description: Fetch count of unread chat messages
       requestBody:
         description: Body JSON
@@ -3241,7 +4696,7 @@ paths:
   /chat/read:
     post:
       tags:
-      - chat
+        - chat
       description: Delete unread chat notifications
       responses:
         "200":
@@ -3265,7 +4720,7 @@ paths:
   /chat/conversations/read:
     post:
       tags:
-      - chat
+        - chat
       description: Delete unread chat notifications
       requestBody:
         description: Body JSON
@@ -3301,7 +4756,7 @@ paths:
   /chat/conversations/online:
     post:
       tags:
-      - chat
+        - chat
       description: Fetch online users in conversation
       requestBody:
         description: Body JSON
@@ -3341,7 +4796,7 @@ paths:
   /chat/conversations/create:
     post:
       tags:
-      - chat
+        - chat
       description: Create a conversation
       requestBody:
         description: Body JSON
@@ -3380,7 +4835,7 @@ paths:
   /chat/conversations/name/edit:
     post:
       tags:
-      - chat
+        - chat
       description: Edit conversation name
       requestBody:
         description: Body JSON
@@ -3419,7 +4874,7 @@ paths:
   /chat/conversations/participants/add:
     post:
       tags:
-      - chat
+        - chat
       description: Add a participant to a chat conversation
       requestBody:
         description: Body JSON
@@ -3461,7 +4916,7 @@ paths:
   /chat/conversations/participants/remove:
     post:
       tags:
-      - chat
+        - chat
       description: Remove a participant from a chat conversation
       requestBody:
         description: Body JSON
@@ -3500,7 +4955,7 @@ paths:
   /chat/lastFocus:
     get:
       tags:
-      - chat
+        - chat
       description: Retrieve lastFocus timestamp of conversations
       responses:
         "200":
@@ -3526,7 +4981,7 @@ paths:
                   name: main
     post:
       tags:
-      - chat
+        - chat
       description: Update lastFocus timestamp of conversations
       requestBody:
         description: Body JSON
@@ -3559,10 +5014,51 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
+  /user/profile:
+    post:
+      tags:
+        - user
+      description: Retrieve user profile
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  example: number
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: string
+                    example: "{ id: number, email: string, publicKey: string, avatarURL:\
+                      \ string, appearOffline: boolean, lastActive: number, nickName:\
+                      \ number }"
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
   /notes:
     get:
       tags:
-      - notes
+        - notes
       description: Fetch all notes
       responses:
         "200":
@@ -3589,7 +5085,7 @@ paths:
   /notes/content:
     post:
       tags:
-      - notes
+        - notes
       description: Fetch note content
       requestBody:
         description: Body JSON
@@ -3643,7 +5139,7 @@ paths:
   /notes/history:
     post:
       tags:
-      - notes
+        - notes
       description: Fetch note history
       requestBody:
         description: Body JSON
@@ -3684,7 +5180,7 @@ paths:
   /notes/history/restore:
     post:
       tags:
-      - notes
+        - notes
       description: Restore a note from history
       requestBody:
         description: Body JSON
@@ -3723,7 +5219,7 @@ paths:
   /notes/create:
     post:
       tags:
-      - notes
+        - notes
       description: Create a note
       requestBody:
         description: Body JSON
@@ -3765,7 +5261,7 @@ paths:
   /notes/delete:
     post:
       tags:
-      - notes
+        - notes
       description: Delete a note
       requestBody:
         description: Body JSON
@@ -3801,7 +5297,7 @@ paths:
   /notes/trash:
     post:
       tags:
-      - notes
+        - notes
       description: Trash a note
       requestBody:
         description: Body JSON
@@ -3837,7 +5333,7 @@ paths:
   /notes/archive:
     post:
       tags:
-      - notes
+        - notes
       description: Archive a note
       requestBody:
         description: Body JSON
@@ -3873,7 +5369,7 @@ paths:
   /notes/restore:
     post:
       tags:
-      - notes
+        - notes
       description: Restore a note
       requestBody:
         description: Body JSON
@@ -3909,7 +5405,7 @@ paths:
   /notes/pinned:
     post:
       tags:
-      - notes
+        - notes
       description: Pin or unpin a note
       requestBody:
         description: Body JSON
@@ -3948,7 +5444,7 @@ paths:
   /notes/favorite:
     post:
       tags:
-      - notes
+        - notes
       description: Favorite or unfavorite a note
       requestBody:
         description: Body JSON
@@ -3987,7 +5483,7 @@ paths:
   /notes/participants/add:
     post:
       tags:
-      - notes
+        - notes
       description: Add a participant to a note
       requestBody:
         description: Body JSON
@@ -4032,7 +5528,7 @@ paths:
   /notes/participants/remove:
     post:
       tags:
-      - notes
+        - notes
       description: Remove a participant to a note
       requestBody:
         description: Body JSON
@@ -4071,7 +5567,7 @@ paths:
   /notes/participants/permissions:
     post:
       tags:
-      - notes
+        - notes
       description: Change participant permissions
       requestBody:
         description: Body JSON
@@ -4113,7 +5609,7 @@ paths:
   /notes/type/change:
     post:
       tags:
-      - notes
+        - notes
       description: Change note type
       requestBody:
         description: Body JSON
@@ -4158,7 +5654,7 @@ paths:
   /notes/title/edit:
     post:
       tags:
-      - notes
+        - notes
       description: Edit note title
       requestBody:
         description: Body JSON
@@ -4197,7 +5693,7 @@ paths:
   /notes/content/edit:
     post:
       tags:
-      - notes
+        - notes
       description: Edit content of a note
       requestBody:
         description: Body JSON
@@ -4239,7 +5735,7 @@ paths:
   /notes/tags:
     get:
       tags:
-      - notes
+        - notes
       description: Fetch all tags
       responses:
         "200":
@@ -4267,7 +5763,7 @@ paths:
   /notes/tags/create:
     post:
       tags:
-      - notes
+        - notes
       description: Create a tag
       requestBody:
         description: Body JSON
@@ -4309,7 +5805,7 @@ paths:
   /notes/tags/rename:
     post:
       tags:
-      - notes
+        - notes
       description: Rename a tag
       requestBody:
         description: Body JSON
@@ -4348,7 +5844,7 @@ paths:
   /notes/tags/delete:
     post:
       tags:
-      - notes
+        - notes
       description: Delete a tag
       requestBody:
         description: Body JSON
@@ -4384,7 +5880,7 @@ paths:
   /notes/tags/favorite:
     post:
       tags:
-      - notes
+        - notes
       description: Favorite a tag
       requestBody:
         description: Body JSON
@@ -4423,7 +5919,7 @@ paths:
   /notes/tag:
     post:
       tags:
-      - notes
+        - notes
       description: Tag a note
       requestBody:
         description: Body JSON
@@ -4462,7 +5958,7 @@ paths:
   /notes/untag:
     post:
       tags:
-      - notes
+        - notes
       description: Untag a note
       requestBody:
         description: Body JSON
@@ -4501,7 +5997,7 @@ paths:
   /contacts:
     get:
       tags:
-      - contacts
+        - contacts
       description: Fetch all contacts
       responses:
         "200":
@@ -4530,7 +6026,7 @@ paths:
   /contacts/requests/in:
     get:
       tags:
-      - contacts
+        - contacts
       description: Fetch all incoming contact requests
       responses:
         "200":
@@ -4558,7 +6054,7 @@ paths:
   /contacts/requests/in/count:
     get:
       tags:
-      - contacts
+        - contacts
       description: Fetch all incoming contact requests
       responses:
         "200":
@@ -4585,7 +6081,7 @@ paths:
   /contacts/requests/out:
     get:
       tags:
-      - contacts
+        - contacts
       description: Fetch all outgoing contact requests
       responses:
         "200":
@@ -4614,7 +6110,7 @@ paths:
   /contacts/requests/out/delete:
     post:
       tags:
-      - contacts
+        - contacts
       description: Delete outgoing contact request
       requestBody:
         description: Body JSON
@@ -4650,7 +6146,7 @@ paths:
   /contacts/requests/send:
     post:
       tags:
-      - contacts
+        - contacts
       description: Send a contact request
       requestBody:
         description: Body JSON
@@ -4686,7 +6182,7 @@ paths:
   /contacts/requests/accept:
     post:
       tags:
-      - contacts
+        - contacts
       description: Accept a contact request
       requestBody:
         description: Body JSON
@@ -4722,7 +6218,7 @@ paths:
   /contacts/requests/deny:
     post:
       tags:
-      - contacts
+        - contacts
       description: Deny a contact request
       requestBody:
         description: Body JSON
@@ -4758,7 +6254,7 @@ paths:
   /contacts/delete:
     post:
       tags:
-      - contacts
+        - contacts
       description: Delete a contact
       requestBody:
         description: Body JSON
@@ -4794,7 +6290,7 @@ paths:
   /contacts/blocked:
     get:
       tags:
-      - contacts
+        - contacts
       description: Fetch all blocked contacts
       responses:
         "200":
@@ -4822,7 +6318,7 @@ paths:
   /contacts/blocked/delete:
     post:
       tags:
-      - contacts
+        - contacts
       description: Delete a contact block
       requestBody:
         description: Body JSON
@@ -4858,7 +6354,7 @@ paths:
   /contacts/blocked/add:
     post:
       tags:
-      - contacts
+        - contacts
       description: Add a contact block
       requestBody:
         description: Body JSON
