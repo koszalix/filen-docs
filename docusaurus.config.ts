@@ -49,8 +49,8 @@ const config: Config = {
       "docusaurus-preset-openapi",
       {
         api: {
-          path: "docs/api/endpoints/filen_openapi.yaml",
-          routeBasePath: "/docs/api/endpoints",
+          path: "docs/api/specs/filen_openapi.yaml",
+          routeBasePath: "/docs/api/specs",
         },
         docs: {
           sidebarPath: './sidebars.ts',
