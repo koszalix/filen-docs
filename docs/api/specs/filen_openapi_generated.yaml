@@ -39,7 +39,7 @@ servers:
   - url: https://gateway.filen.io/v3
 externalDocs:
   description: Get general information about usage of the Filen API at docs.filen.io
-  url: "https://docs.filen.io/docs/api/introduction"
+  url: "https://docs.filen.io/docs/api"
 components:
   securitySchemes:
     api_key:

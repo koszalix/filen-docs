@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+slug: /api
 ---
 
 # Introduction
@@ -12,7 +13,7 @@ The Filen API can do everything our first-party clients can, which includes uplo
 
 :::info SKDs
 
-If you're building an application written in JavaScript or TypeScript, our [TypeScript SDK](../sdk/introduction) provides developer-friendly wrappings of all API endpoints, and more.
+If you're building an application written in JavaScript or TypeScript, our [TypeScript SDK](./sdk) provides developer-friendly wrappings of all API endpoints, and more.
 
 There is also a [Go SDK](https://github.com/FilenCloudDienste/filen-sdk-go) that provides functionality for uploading/downloading and managing files and directories. It is currently work in progress!
 

@@ -18,22 +18,22 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/web-app/introduction">
+            to="/docs/web-app">
             Web App Docs
           </Link>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/desktop-app/introduction">
+            to="/docs/desktop-app">
             Desktop App Docs
           </Link>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/mobile-app/introduction">
+            to="/docs/mobile-app">
             Mobile App Docs
           </Link>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/cli/introduction">
+            to="/docs/cli">
             CLI Docs
           </Link>
         </div>
@@ -51,12 +51,12 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/sdk/introduction">
+            to="/docs/sdk">
             SDK Docs
           </Link>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/api/introduction">
+            to="/docs/api">
             API Docs
           </Link>
         </div>

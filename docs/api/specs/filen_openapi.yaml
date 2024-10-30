@@ -4,7 +4,7 @@ info:
   description: |-
     The Filen API is used by Filen clients for uploading and downloading files, managing files and directories, sharing items, accessing notes and contacts, having chat conversations, managing user-specific settings, and more.
 
-    Get general information about using the Filen API [in the documentation](https://docs.filen.io/docs/api/introduction).
+    Get general information about using the Filen API [in the documentation](https://docs.filen.io/docs/api).
     
     ### API responses
     All API responses follow the schema (TypeScript type definition):
@@ -72,7 +72,7 @@ servers:
 - url: https://gateway.filen.io/v3
 externalDocs:
   description: Get general information about usage of the Filen API at docs.filen.io
-  url: "https://docs.filen.io/docs/api/introduction"
+  url: "https://docs.filen.io/docs/api"
 components:
   securitySchemes:
     api_key:
