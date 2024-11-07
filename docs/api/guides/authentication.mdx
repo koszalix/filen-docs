@@ -8,7 +8,11 @@ import ApiEndpointLink from "../../../src/components/apiEndpointLink";
 
 This guide will walk you through authenticating a user with Filen. 
 
-First, call <ApiEndpointLink endpoint="/v3/auth/info"/> with your user's email to fetch the user's password encryption salt.
+#### Fetch salt
+
+First, call <ApiEndpointLink endpoint="/v3/auth/info" slug="get-auth-info" /> with your user's email to fetch the user's password encryption salt.
+
+#### Derive key
 
 Use [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) to derive a key from the raw password, using the fetched salt, 200 000 iterations and a key length of 64. Convert the result to a hex string and split it into two parts of equal length. The first part is the password used for logging in, the second part is the encryption master key. This is the corresponding code from the [TypeScript SDK](../../sdk):
 
@@ -20,7 +24,11 @@ nodeCrypto.pbkdf2(password, salt, 200000, 512 / 8, "sha512", (_, result) => {
 })
 ```
 
+#### Log in
+
 Then, call <ApiEndpointLink endpoint="/v3/login"/> with the user's email, the derived password (not the raw password) and the auth version set to 2. Optionally, also pass the user's two-factor authentication code (if the user doesn't use two-factor authentication, pass `"XXXXXX"` instead). The response will contain the API key and the public/private keys for public-key encryption.
+
+#### Fetch all master keys
 
 To fetch all master keys, call <ApiEndpointLink endpoint="/v3/user/masterKeys"/> with the master key metadata-encrypted with itself as the key. Metadata-decrypt the fetched master keys with the master key and split the result at `"|"` to get the list of all decryption master keys.
 
@@ -32,7 +40,7 @@ You are now signed in and ready to encrypt and decrypt your traffic!
 
 Todo:
 - [ ] add "all endpoints are at ..." general info
-- [ ] add links to Encryption guide
+- [x] add links to Encryption guide
 - [ ] maybe the public/private keys need more specific wording
 - [ ] add:
     - [ ] handling of public/private keys

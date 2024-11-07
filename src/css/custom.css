@@ -39,3 +39,11 @@ article a {
 span.muted {
   opacity: 50%;
 }
+
+/* header formatting */
+h2, h3 {
+  text-decoration: rgba(255, 255, 255, 0.4) underline;
+}
+h4 {
+  text-decoration: rgba(255, 255, 255, 0.4) wavy underline;
+}
