@@ -1,0 +1,83 @@
+---
+sidebar_position: 2
+---
+
+# Encryption
+
+This guide will introduce you to the various encryption mechanics used in Filen.
+
+
+## Files and directories (symmetric-key encryption)
+
+Filen uses symmetric cryptography using the master key (or master keys) using [AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard)-256-[GCM](https://en.wikipedia.org/wiki/Galois/Counter_Mode) encryption. We differentiate between two basic encryption concerns: *Metadata encryption* is our term for any small strings, like file metadata or directory names, that need to be encrypted. *Data encryption* means encryption of binary file content.
+
+
+### General information on master keys
+
+The key used for encryption is always derived from the user's password; we call it the user's *master key*. 
+
+When the user changes their password, a new master key (derived from the new password) is used for all subsequent encryption operations. This way, there is always exactly one master key used for encryption (the one derived from the current password); but one or more outdated master keys exist, which some files have been encrypted with. Therefore, there is a list (in encrypted form) of all master keys (past and current), which gets updated upon a password change, and which is fetched from Filen when logging in. When you decrypt a file (or anything that was encrypted using a master key), you need to try every master key on this list to find the correct one.
+
+
+### Metadata encryption
+
+To metadata-encrypt a string, follow these steps:
+
+#### Derive key
+
+First, the key used for metadata encryption is derived from the current master key, meaning the one derived from the user's current password (not the other master keys that were fetched). The key used for encryption is derived from the master key using [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) with the master key used as both the password and the salt input, a single interation and a key length of 32. This is the corresponding code from the [TypeScript SDK](../../sdk):
+
+```ts
+nodeCrypto.pbkdf2(masterKey, masterKey, 1, 256 / 8, "sha512")
+```
+
+#### Encrypt and format
+
+Generate a cryptographically secure random string of length 12 for the cryptographic nonce. To finally encrypt the string, use AES-256-GCM with the derived key, the nonce and the string as input data (usually stringified JSON). Concatenate the binary encrypted output and the auth tag, and stringify the result using base64 encoding. Finally, build the metadata encrypted string representation by concatenating the string `"002"` (for the encryption version), the nonce and  the base64 string.
+
+
+### Metadata decryption
+
+To metadata-decrypt a string, follow these steps:
+
+#### Check format
+
+Check that the string starts with the string `"002"` (this is the encryption version). A complete implementation should handle deprecated encryption versions for backwards compatibility (for technical reasons regarding the client-side encryption, there is always the possibility of encountering a metadata string still using the deprecated encryption version). Have a look at the [TypeScript SDK source](https://github.com/FilenCloudDienste/filen-sdk-ts/blob/f0de9d00726b113f9aecdb1ca9e33a23cde11977/src/crypto/decrypt.ts#L58-L63) for this.
+
+#### Derive key
+
+Now, derive the encryption key using the exact steps described [above](#derive-key). Since you can't know which key the string has been encrypted with, you need to try the derived key for every available master key.
+
+#### Decrypt
+
+Next, you need to separate the decryption algorithm inputs that were concatenated in the encryption process: Slice the input from index 3 to 15 to get the nonce (UTF-8 encoded), and from index 15 to get the encrypted string (base64 encoded). The encrypted string includes the auth tag in the last 16 bytes, the rest is the binary encrypted input. Use AES-256-GCM with the derived key, the nonce, the auth tag and the binary encrypted input to get the plaintext metadata string (if it represents a JSON object, parse it).
+
+
+### Data encryption
+
+To encrypt raw file data, follow these steps:
+
+Generate a cryptogrpahically secure random string of length 12 for the cryptographic nonce. Use AES-256-GCM with the nonce, the binary input data and the encryption key (see the guide on file uploads for details on this encryption key). The byte array to upload is the concatenation of the nonce (as bytes) and the encrypted bytes. 
+
+
+### Data decryption
+
+To decrypt file data, follow these steps:
+
+Split the first 12 bytes off the encrypted bytes to get the cryptographic nonce, the rest is the encrypted file data. Use AES-256-GCM with the nonce, the encrypted file data and the encryption key (see the guide on file downloads for details on this encryption key). The result is the plaintext file data. 
+
+
+## Shared items (public-key encryption)
+
+<span className="muted">This guide will be expanded to include handling of asymmetric encryption used in file sharing and more.</span>
+
+<!---
+
+Content:
+- info about master keys list
+- metadata and data encryption
+
+Todo:
+- [ ] add link to File Uploads guide
+
+--->
