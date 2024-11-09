@@ -7,22 +7,22 @@ slug: /cli
 # Introduction
 
 The Filen CLI provides a set of useful tools for interacting with the cloud:
-- [Accessing your Filen Drive](#access-your-filen-drive) in a stateless environment or [interactive mode](#interactive-mode)
-- [Syncing](#syncing) locations with the cloud (just like the Desktop app)
-- Mounting a [network drive](#network-drive-mounting)
-- Running a [WebDAV mirror server](#webdav-server) of your [personal drive](#single-user), or multiple drives in [proxy mode](#proxy-mode)
-- Running an [S3 mirror server](#s3-server)
+- [Accessing your Filen Drive](./cli/access-filen-drive) in a stateless environment or [interactive mode](./cli/access-filen-drive#interactive-mode)
+- [Syncing](./cli/syncing) locations with the cloud (just like the Desktop app)
+- Mounting a [network drive](./cli/network-drive-mounting)
+- Running a [WebDAV mirror server](./cli/webdav-and-s3-server#webdav-server) of your [personal drive](./cli/webdav-and-s3-server#single-user), or multiple drives in [proxy mode](./cli/webdav-and-s3-server#proxy-mode)
+- Running an [S3 mirror server](./cli/webdav-and-s3-server#s3-server)
 
 :::warning Work in progress
 
-The CLI is still work in progress. **DO NOT USE IN PRODUCTION YET**. It is not guaranteed to be stable.
+The CLI is still work in progress. Do not use it in production yet. It is not guaranteed to be stable.
 
 :::
 
 
 ## Installation and updates
 
-You can download the latest binaries from the [release page](https://github.com/FilenCloudDienste/filen-cli/releases/latest).
+You can download the latest binaries from the [GitHub release page](https://github.com/FilenCloudDienste/filen-cli/releases/latest).
 Docker images are also available as [`filen/cli`](https://hub.docker.com/repository/docker/filen/cli).
 
 The Filen CLI includes an automatic updater that checks for a new release every time the CLI is invoked
@@ -33,13 +33,10 @@ Invoke the CLI with the `--skip-update` flag to skip checking for updates.
 
 ## Usage
 
-```
-$ filen [options...]
-```
-
-Options:
+Global flags:
 - `--help`, `-h`: display usage information
 - `--verbose`, `-v`: display additional information
 - `--quiet`, `-q`: hide things like progress bars and additional logs
-- `--email <email>` and `--password <password>` (optionally `--two-factor-code <code>`, `-c <code>`): specify credentials
 - `--log-file <file>`: write logs to a file
+
+For detailed information on how to use the CLI features, see the respective documentation pages.
