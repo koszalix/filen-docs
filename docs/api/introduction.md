@@ -17,6 +17,8 @@ If you're building an application written in JavaScript or TypeScript, our [Type
 
 There is also a [Go SDK](https://github.com/FilenCloudDienste/filen-sdk-go) that provides functionality for uploading/downloading and managing files and directories. It is currently work in progress!
 
+If you need another reference for how to interface with the API or how to implement a specific process, the SDKs might be worth looking into.
+
 :::
 
 ## How these docs are structured

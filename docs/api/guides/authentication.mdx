@@ -8,6 +8,12 @@ import ApiEndpointLink from "../../../src/components/apiEndpointLink";
 
 This guide will walk you through authenticating a user with Filen. 
 
+:::tip Refer to the SDK
+
+Everything described here is implemented in our TypeScript SDK, so you can always look at the [SDK source](https://github.com/FilenCloudDienste/filen-sdk-ts/blob/main/src/index.ts) if you need more information.
+
+:::
+
 #### Fetch salt
 
 First, call <ApiEndpointLink endpoint="/v3/auth/info" slug="get-auth-info" /> with your user's email to fetch the user's password encryption salt.
@@ -27,6 +33,8 @@ nodeCrypto.pbkdf2(password, salt, 200000, 512 / 8, "sha512", (_, result) => {
 #### Log in
 
 Then, call <ApiEndpointLink endpoint="/v3/login"/> with the user's email, the derived password (not the raw password) and the auth version set to 2. Optionally, also pass the user's two-factor authentication code (if the user doesn't use two-factor authentication, pass `"XXXXXX"` instead). The response will contain the API key and the public/private keys for public-key encryption.
+
+For API requests that require authentication, pass the API key in the `Authorization` HTTP header set to `Bearer <api_key>`. 
 
 #### Fetch all master keys
 

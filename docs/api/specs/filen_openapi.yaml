@@ -118,16 +118,16 @@ paths:
                   example: (file uuid)
                 name:
                   type: string
-                  description: the file name (metadata-encrypted)
-                  example: (file name, metadata-encrypted)
+                  description: the file name (metadata-encrypted **using the encryption key**)
+                  example: (file name, metadata-encrypted using the encryption key)
                 nameHashed: 
                   type: string
                   description: the hex-encoded SHA-512 hash of the file name
                   example: (SHA-512 hash of file name, as hex)
                 size:
                   type: string
-                  description: the file's total size in bytes (metadata-encrypted)
-                  example: (file size in bytes, metadata-encrypted)
+                  description: the file's total size in bytes (metadata-encrypted **using the encryption key**)
+                  example: (file size in bytes, metadata-encrypted using the encryption key)
                 chunks:
                   type: integer
                   description: the number of chunks uploaded
@@ -143,18 +143,17 @@ paths:
                 metadata:
                   type: string
                   description: |-
-                    the file's metadata (metadata-encrypted) following the schema (TypeScript type definition):
+                    the file's metadata (metadata-encrypted **using the master key**) following the schema (TypeScript type definition):
                     ```ts
                     {
                       name: string, // the file name
                       size: number, // the file size in bytes
                       mime: string, // the file's MIME type
                       key: string, // the key used to encrypt the file chunks
-                      lastModified: number, // the file's modification time in milliseconds or seconds
-                      creation: number, // the file's creation time in milliseconds or seconds
+                      lastModified: number, // the file's modification timestamp in seconds
+                      creation: number, // the file's creation timestamp in seconds
                     }
                     ```
-                    See these docs' introduction on how to handle milliseconds/seconds timestamps.
                   example: (-> see description)
                 version:
                   type: string
