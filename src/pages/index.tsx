@@ -17,18 +17,15 @@ function HomepageHeader() {
         </p>
         <div className={styles.buttons}>
           <Link
-            className="button button--secondary button--lg"
-            to="/docs/web-app">
+            className={`button button--secondary button--lg ${styles.buttonComingSoon}`}>
             Web App Docs
           </Link>
           <Link
-            className="button button--secondary button--lg"
-            to="/docs/desktop-app">
+            className={`button button--secondary button--lg ${styles.buttonComingSoon}`}>
             Desktop App Docs
           </Link>
           <Link
-            className="button button--secondary button--lg"
-            to="/docs/mobile-app">
+            className={`button button--secondary button--lg ${styles.buttonComingSoon}`}>
             Mobile App Docs
           </Link>
           <Link

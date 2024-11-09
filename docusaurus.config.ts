@@ -81,7 +81,7 @@ const config: Config = {
         src: 'img/logo.svg',
       },
       items: [
-        {
+        /*{
           type: 'docSidebar',
           sidebarId: 'webAppSidebar',
           position: 'left',
@@ -98,7 +98,7 @@ const config: Config = {
           sidebarId: 'mobileAppSidebar',
           position: 'left',
           label: 'Mobile',
-        },
+        },*/
         {
           type: 'docSidebar',
           sidebarId: 'cliSidebar',
