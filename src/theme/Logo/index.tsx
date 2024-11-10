@@ -5,6 +5,7 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import {useThemeConfig, type NavbarLogo} from '@docusaurus/theme-common';
 import ThemedImage from '@theme/ThemedImage';
 import type {Props} from '@theme/Logo';
+import BrowserOnly from "@docusaurus/core/lib/client/exports/BrowserOnly";
 
 function LogoThemedImage({
   logo,
@@ -47,12 +48,6 @@ export default function Logo(props: Props): JSX.Element {
     navbar: {title: navbarTitle, logo},
   } = useThemeConfig();
 
-  const customNavbarTitle = 
-    window.location.href.includes("/cli") ? "Filen CLI Docs"
-    : window.location.href.includes("/sdk") ? "Filen SDK Docs"
-    : window.location.href.includes("/api") ? "Filen API Docs"
-    : "Filen Docs"
-
   const {imageClassName, titleClassName, ...propsRest} = props;
   const logoLink = useBaseUrl(logo?.href || '/');
 
@@ -76,7 +71,15 @@ export default function Logo(props: Props): JSX.Element {
           imageClassName={imageClassName}
         />
       )}
-      {navbarTitle != null && <b className={titleClassName}>{customNavbarTitle}</b>}
+      <BrowserOnly fallback={<b className={titleClassName}>Filen Docs</b>}>
+        {() => {
+          const customNavbarTitle = window.location.href.includes("/cli") ? "Filen CLI Docs"
+            : window.location.href.includes("/sdk") ? "Filen SDK Docs"
+            : window.location.href.includes("/api") ? "Filen API Docs"
+            : "Filen Docs"
+          return <b className={titleClassName}>{customNavbarTitle}</b>
+        }}
+      </BrowserOnly>
     </Link>
   );
 }
