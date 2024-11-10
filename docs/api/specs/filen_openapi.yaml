@@ -27,6 +27,7 @@ info:
       - `/user/avatar` (upload an avatar)
       - `/user/affiliate/payout` (request an affiliate payout)
       - `/user/loginAlerts` (enable/disable login alerts)
+      - `/confirmation/send` (resend a confirmation email)
       - `/user/gdpr` (get user's GDPR information)
       - `/user/delete` (delete account)
       - `/user/delete/all` (delete all files and directories)
@@ -58,6 +59,70 @@ info:
       - `/user/delete/versions` (delete all file versions)
       - `/file/version/restore` (restore a file version)
       - `/file/versions` (get all versions of a file)
+    - chat:
+      - `/chat/messages` (get chat messaegs)
+      - `/chat/send` (send chat message)
+      - `/chat/typing` (send typing events)
+      - `/chat/edit` (edit chat message)
+      - `/chat/message/embed/disable` (disable message embed)
+      - `/chat/delete` (delete chat message)
+      - `/chat/unread` (get count of unread messages)
+      - `/chat/read` (mark messages as read)
+      - `/chat/mute` (mute/unmute chat)
+      - `/chat/lastFocus` (get/update last focused timestamp of conversations)
+      - conversations:
+        - `/chat/conversations` (get conversations)
+        - `/chat/conversations/unread` (get cound of unread messages)
+        - `/chat/conversations/read` (mark messages as read)
+        - `/chat/conversations/create` (create conversation)
+        - `/chat/conversations/name/edit` (edit conversation name)
+        - `/chat/conversations/participants/add` (add conversation participant)
+        - `/chat/conversations/participants/remove` (remove conversation participant)
+        - `/chat/conversations/online` (get online users in conversation)
+        - `/chat/conversations/leave` (leave conversation)
+        - `/chat/conversations/delete` (delete conversation)
+    - notes:
+      - `/notes` (get all notes)
+      - `/notes/create` (create note)
+      - `/notes/content` (get note content)
+      - `/notes/content/edit` (edit note content)
+      - `/notes/type/change` (change note type)
+      - `/notes/title/edit` (edit note title)
+      - `/notes/delete` (delete note permanently)
+      - `/notes/trash` (trash note)
+      - `/notes/archive` (archive note)
+      - `/notes/restore` (restore note)
+      - `/notes/history` (get note history)
+      - `/notes/history/restore` (restore note from history)
+      - participants:
+        - `/notes/participants/add` (add note participant)
+        - `/notes/participants/remove` (remove note participant)
+        - `/notes/participants/permissions` (change participant permissions)
+      - pinned/favorited/tagged:
+        - `/notes/pinned` (pin/unpin note)
+        - `/notes/favorited` (favorite/unfavorite note)
+        - `/notes/tags` (get all tags)
+        - `/notes/tags/create` (create tag)
+        - `/notes/tags/rename` (rename tag)
+        - `/notes/tags/delete` (delete tag)
+        - `/notes/tag/favorite` (favorite tag)
+        - `/notes/tag` (tag a note)
+        - `/notes/untag` (untag a note)
+    - contacts
+      - `/contacts` (get all contacts)
+      - `/contacts/delete` (delete contact)
+      - requests:
+        - `/contacts/requests/in` (get incoming contact requests)
+        - `/contacts/requests/in/count` (get count of incoming contact requests)
+        - `/contacts/requests/out` (get outgoing contact requests)
+        - `/contacts/requests/out/delete` (delete outgoing contact request)
+        - `/contacts/requests/send` (send contact request)
+        - `/contacts/requests/accept` (accept contact request)
+        - `/contacts/requests/deny` (deny contact request)
+      - blocked:
+        - `/contacts/blocked` (get blocked contacts)
+        - `/contacts/blocked/delete` (unblock contact)
+        - `/contacts/blocked/add` (block contact)
     - realtime events:
       - `/user/events` (get user events)
       - `/user/event` (get event info)
@@ -91,319 +156,16 @@ components:
           type: string
 paths:
   /health: #edited
-    get:
-      summary: Get API health
-      responses:
-        "200":
-          description: health
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: OK
-  /upload/done: #edited
-    post:
-      tags: [File Transfers]
-      summary: Mark an upload completed
-      description: Marks an upload as completed. Use this after you've uploaded file chunks to the Ingest API. #todo more detailed description
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
+      get:
+        summary: Get API health
+        responses:
+          "200":
+            description: health
+            content:
+              text/plain:
+                schema:
                   type: string
-                  description: the UUID of the uploaded file
-                  example: (file uuid)
-                name:
-                  type: string
-                  description: the file name (metadata-encrypted **using the encryption key**)
-                  example: (file name, metadata-encrypted using the encryption key)
-                nameHashed: 
-                  type: string
-                  description: the hex-encoded SHA-512 hash of the file name
-                  example: (SHA-512 hash of file name, as hex)
-                size:
-                  type: string
-                  description: the file's total size in bytes (metadata-encrypted **using the encryption key**)
-                  example: (file size in bytes, metadata-encrypted using the encryption key)
-                chunks:
-                  type: integer
-                  description: the number of chunks uploaded
-                  example: (number of chunks uploaded)
-                mime:
-                  type: string
-                  description: the file's MIME type
-                  example: (file MIME type)
-                rm:
-                  type: string
-                  description: a cryptographically-secure random string of length 32
-                  example: (random string of length 32)
-                metadata:
-                  type: string
-                  description: |-
-                    the file's metadata (metadata-encrypted **using the master key**) following the schema (TypeScript type definition):
-                    ```ts
-                    {
-                      name: string, // the file name
-                      size: number, // the file size in bytes
-                      mime: string, // the file's MIME type
-                      key: string, // the key used to encrypt the file chunks
-                      lastModified: number, // the file's modification timestamp in seconds
-                      creation: number, // the file's creation timestamp in seconds
-                    }
-                    ```
-                  example: (-> see description)
-                version:
-                  type: string
-                  description: the file encryption version, which is `2`
-                  example: 2
-                uploadKey:
-                  type: string
-                  description: a cryptographically-secure random string of length 32, which had been passed along with each file chunk
-                  example: (upload key from chunk uploads)
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                allOf:
-                - $ref: "#/components/schemas/response"
-                - type: object
-                  properties:
-                    chunks:
-                      type: number
-                      description: the number of chunks uploaded
-                      example: (number of chunks uploaded)
-                    size:
-                      type: number
-                      description: the file's total size in bytes
-                      example: (file size in bytes)
-  /user/baseFolder: #edited
-    get:
-      tags: [Items]
-      summary: Get user base folder
-      description: Returns the UUID of the user's root directory.
-      security: [api_key: []]
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                allOf:
-                - $ref: "#/components/schemas/response"
-                - type: object
-                  properties:
-                    data:
-                      type: object
-                      properties:
-                        uuid:
-                          type: string
-                          description: the user's root directory's UUID
-  /user/masterKeys: #edited
-    post:
-      tags: [User]
-      summary: Retrieve and update user master keys
-      description: Returns the user's master keys. If this is the user's first login, there are no master keys yet and the passed `masterKeys` are saved.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                masterKeys:
-                  type: string
-                  description: the master key that was derived from the raw password (metadata-encrypted)
-                  example: (master key derived from raw password)
-        required: true
-      security: [api_key: []]
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                allOf:
-                - $ref: "#/components/schemas/response"
-                - type: object
-                  properties:
-                    data:
-                      type: object
-                      properties:
-                        keys:
-                          type: string
-                          description: the user's saved master keys, joined with `"|"` (metadata-encrypted)
-                          example: (master keys joined with '|', metadata-encrypted)
-  /user/keyPair/info:
-    get:
-      tags:
-      - user
-      description: Retrieve encrypted user keypair
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      publicKey:
-                        type: string
-                        example: string
-                      privateKey:
-                        type: string
-                        example: string
-                xml:
-                  name: main
-  /user/keyPair/update:
-    post:
-      tags:
-      - user
-      description: Update user keypair
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                publicKey:
-                  type: string
-                  example: string
-                privateKey:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /user/keyPair/set:
-    post:
-      tags:
-      - user
-      description: Set user keypair
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                publicKey:
-                  type: string
-                  example: string
-                privateKey:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /user/publicKey:
-    post:
-      tags:
-      - user
-      description: Retrieve a user's public key
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      publicKey:
-                        type: string
-                        example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /trash/empty: #edited
-    post:
-      tags: [Items]
-      summary: Empty trash
-      description: Permanently deletes all trash items.
-      security: [api_key: []]
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/response"
+                  example: OK
   /auth/info: #edited
     post:
       tags: [User]
@@ -484,11 +246,156 @@ paths:
                           type: string
                           description: the private key
                           example: (private key)
-  /confirmation/send:
+  /user/masterKeys: #edited
     post:
-      tags:
-      - auth
-      description: Resend a confirmation email
+      tags: [User]
+      summary: Retrieve and update user master keys
+      description: Returns the user's master keys. If this is the user's first login, there are no master keys yet and the passed `masterKeys` are saved.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                masterKeys:
+                  type: string
+                  description: the master key that was derived from the raw password (metadata-encrypted)
+                  example: (master key derived from raw password)
+        required: true
+      security: [api_key: []]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: "#/components/schemas/response"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        keys:
+                          type: string
+                          description: the user's saved master keys, joined with `"|"` (metadata-encrypted)
+                          example: (master keys joined with '|', metadata-encrypted)
+  /user/keyPair/info:
+    get:
+      summary: Get encrypted user keypair
+      tags: [User]
+      description: Retrieve encrypted user keypair
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      publicKey:
+                        type: string
+                        example: string
+                      privateKey:
+                        type: string
+                        example: string
+                xml:
+                  name: main
+  /user/keyPair/update:
+    post:
+      summary: Update user keypair
+      tags: [User]
+      description: Update user keypair
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                publicKey:
+                  type: string
+                  example: string
+                privateKey:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/keyPair/set:
+    post:
+      summary: Set user keypair
+      tags: [User]
+      description: Set user keypair
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                publicKey:
+                  type: string
+                  example: string
+                privateKey:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/publicKey:
+    post:
+      summary: Get user public key
+      tags: [User]
+      description: Retrieve a user's public key
       requestBody:
         description: Body JSON
         content:
@@ -518,14 +425,486 @@ paths:
                     type: string
                     example: string
                   data:
+                    type: object
+                    properties:
+                      publicKey:
+                        type: string
+                        example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /user/baseFolder: #edited
+    get:
+      tags: [Items]
+      summary: Get user base folder
+      description: Returns the UUID of the user's root directory.
+      security: [api_key: []]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: "#/components/schemas/response"
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        uuid:
+                          type: string
+                          description: the user's root directory's UUID
+  /file:
+    post:
+      summary: Get file info
+      tags: ["Items: Files"]
+      description: Retrieve file info
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
                     type: string
-                    example: object | array | undefined
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                        example: uuidv4
+                      region:
+                        type: string
+                        example: string
+                      bucket:
+                        type: string
+                        example: string
+                      nameEncrypted:
+                        type: string
+                        example: string
+                      nameHashed:
+                        type: string
+                        example: string
+                      sizeEncrypted:
+                        type: string
+                        example: string
+                      mimeEncrypted:
+                        type: string
+                        example: string
+                      metadata:
+                        type: string
+                        example: string
+                      size:
+                        type: string
+                        example: number
+                      parent:
+                        type: string
+                        example: uuidv4
+                      versioned:
+                        type: string
+                        example: boolean
+                      trash:
+                        type: string
+                        example: boolean
+                      version:
+                        type: string
+                        example: number
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /upload/done: #edited
+    post:
+      summary: Mark an upload completed
+      tags: ["Items: Files"]
+      description: Marks an upload as completed. Use this after you've uploaded file chunks to the Ingest API. #todo more detailed description
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  description: the UUID of the uploaded file
+                  example: (file uuid)
+                name:
+                  type: string
+                  description: the file name (metadata-encrypted **using the encryption key**)
+                  example: (file name, metadata-encrypted using the encryption key)
+                nameHashed: 
+                  type: string
+                  description: the hex-encoded SHA-512 hash of the file name
+                  example: (SHA-512 hash of file name, as hex)
+                size:
+                  type: string
+                  description: the file's total size in bytes (metadata-encrypted **using the encryption key**)
+                  example: (file size in bytes, metadata-encrypted using the encryption key)
+                chunks:
+                  type: integer
+                  description: the number of chunks uploaded
+                  example: (number of chunks uploaded)
+                mime:
+                  type: string
+                  description: the file's MIME type
+                  example: (file MIME type)
+                rm:
+                  type: string
+                  description: a cryptographically-secure random string of length 32
+                  example: (random string of length 32)
+                metadata:
+                  type: string
+                  description: |-
+                    the file's metadata (metadata-encrypted **using the master key**) following the schema (TypeScript type definition):
+                    ```ts
+                    {
+                      name: string, // the file name
+                      size: number, // the file size in bytes
+                      mime: string, // the file's MIME type
+                      key: string, // the key used to encrypt the file chunks
+                      lastModified: number, // the file's modification timestamp in seconds
+                      creation: number, // the file's creation timestamp in seconds
+                    }
+                    ```
+                  example: (-> see description)
+                version:
+                  type: string
+                  description: the file encryption version, which is `2`
+                  example: 2
+                uploadKey:
+                  type: string
+                  description: a cryptographically-secure random string of length 32, which had been passed along with each file chunk
+                  example: (upload key from chunk uploads)
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: "#/components/schemas/response"
+                - type: object
+                  properties:
+                    chunks:
+                      type: number
+                      description: the number of chunks uploaded
+                      example: (number of chunks uploaded)
+                    size:
+                      type: number
+                      description: the file's total size in bytes
+                      example: (file size in bytes)
+  /file/present:
+    post:
+      summary: Check if file exists
+      tags: ["Items: Files"]
+      description: Check if a file exists
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      present:
+                        type: string
+                        example: boolean
+                      versioned:
+                        type: string
+                        example: boolean | undefined
+                      trash:
+                        type: string
+                        example: boolean | undefined
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /file/exists:
+    post:
+      summary: Check if file exists by name
+      tags: ["Items: Files"]
+      description: Check if a file exists inside a parent with a given name
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parent:
+                  type: string
+                  example: uuidv4
+                nameHashed:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      exists:
+                        type: string
+                        example: boolean
+                      uuid:
+                        type: string
+                        example: string?
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /file/move:
+    post:
+      summary: Move file
+      tags: ["Items: Files"]
+      description: Move a file
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+                to:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /file/rename:
+    post:
+      summary: Rename file
+      tags: ["Items: Files"]
+      description: Rename a file
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+                name:
+                  type: string
+                  example: string
+                metadata:
+                  type: string
+                  example: string
+                nameHashed:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /file/trash:
+    post:
+      summary: Trash file
+      tags: ["Items: Files"]
+      description: Move a file to the trash
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /file/restore:
+    post:
+      summary: Restore file
+      tags: ["Items: Files"]
+      description: Restore a file from the trash
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /file/delete/permanent:
+    post:
+      summary: Delete file permanently
+      tags: ["Items: Files"]
+      description: Delete a file permanently
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
                 xml:
                   name: main
       x-codegen-request-body-name: body
   /dir: #edited
     post:
-      tags: [Directories]
+      tags: ["Items: Directories"]
       summary: Get directory info
       description: Returns information about a directory.
       requestBody:
@@ -580,7 +959,7 @@ paths:
                       example: (directory color, or null)
   /dir/content:
     post:
-      tags: [Directories]
+      tags: ["Items: Directories"]
       summary: Get directory content
       description: Returns information about the files and directories inside a directory.
       requestBody:
@@ -669,8 +1048,7 @@ paths:
                                 type: integer
                                 description: whether this file is favorited, expressed as `1` or `0`
                                 example: (whether this file is favorited, as 1 or 0)
-############################################### generally, edited up until this point
-                        folders:
+                        folders: #todo
                           type: array
                           description: the directories inside this directory
                           items:
@@ -690,148 +1068,10 @@ paths:
                                 type: integer
                               is_default:
                                 type: integer
-  /dir/restore:
-    post:
-      tags:
-      - dir
-      description: Restore a directory from the trash
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /dir/create:
-    post:
-      tags:
-      - dir
-      description: Create a folder
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                name:
-                  type: string
-                  example: encrypted string
-                nameHashed:
-                  type: string
-                  example: string
-                parent:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      uuid:
-                        type: string
-                        example: uuidv4
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /dir/link/edit:
-    post:
-      tags:
-      - dir
-      description: Edit a folder's public link
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                expiration:
-                  type: string
-                  example: string
-                password:
-                  type: string
-                  example: string
-                passwordHashed:
-                  type: string
-                  example: string
-                downloadBtn:
-                  type: string
-                  example: boolean
-                salt:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
   /dir/download:
     post:
-      tags:
-      - dir
+      summary: Get directory tree
+      tags: ["Items: Directories"]
       description: Retrieve complete folder tree (flattened)
       requestBody:
         description: Body JSON
@@ -873,256 +1113,10 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
-  /dir/link/remove:
-    post:
-      tags:
-      - dir
-      description: Remove a public link from a folder
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /dir/download/link:
-    post:
-      tags:
-      - dir
-      description: Retrieve complete folder tree of a public link (flattened)
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                parent:
-                  type: string
-                  example: uuidv4
-                password:
-                  type: string
-                  example: string | none
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      files:
-                        type: string
-                        example: array
-                      folders:
-                        type: string
-                        example: array
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /dir/download/shared:
-    post:
-      tags:
-      - dir
-      description: Retrieve complete folder tree of a shared folder (flattened)
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      files:
-                        type: string
-                        example: array
-                      folders:
-                        type: string
-                        example: array
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /dir/link/status:
-    post:
-      tags:
-      - dir
-      description: Retrieve status of a folder public link
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      exists:
-                        type: string
-                        example: boolean
-                      uuid:
-                        type: string
-                        example: uuidv4?
-                      key:
-                        type: string
-                        example: string?
-                      expiration:
-                        type: string
-                        example: number?
-                      expirationText:
-                        type: string
-                        example: string?
-                      downloadBtn:
-                        type: string
-                        example: 0 | 1?
-                      password:
-                        type: string
-                        example: string?
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /dir/link/add:
-    post:
-      tags:
-      - dir
-      description: Add an item to a folder public link
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                parent:
-                  type: string
-                  example: uuidv4
-                linkUUID:
-                  type: string
-                  example: uuidv4
-                type:
-                  type: string
-                  example: file | folder
-                metadata:
-                  type: string
-                  example: encrypted string
-                key:
-                  type: string
-                  example: encrypted string
-                expiration:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
   /dir/tree:
     post:
-      tags:
-      - dir
+      summary: Get flattened directory tree
+      tags: ["Items: Directories"]
       description: "Get a complete directory tree (meant for syncing, flattened)"
       requestBody:
         description: Body JSON
@@ -1170,11 +1164,11 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
-  /dir/color:
+  /dir/create:
     post:
-      tags:
-      - dir
-      description: Change folder color
+      summary: Create directory
+      tags: ["Items: Directories"]
+      description: Create a folder
       requestBody:
         description: Body JSON
         content:
@@ -1185,9 +1179,15 @@ paths:
                 uuid:
                   type: string
                   example: uuidv4
-                color:
+                name:
                   type: string
-                  example: default | blue | green | purple | gray | red
+                  example: encrypted string
+                nameHashed:
+                  type: string
+                  example: string
+                parent:
+                  type: string
+                  example: uuidv4
         required: true
       responses:
         "200":
@@ -1206,13 +1206,112 @@ paths:
                   code:
                     type: string
                     example: string
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                        example: uuidv4
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /dir/present:
+    post:
+      summary: Check if directory exists
+      tags: ["Items: Directories"]
+      description: Check if a directory exists
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      present:
+                        type: string
+                        example: boolean
+                      trash:
+                        type: string
+                        example: boolean | undefined
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /dir/exists:
+    post:
+      summary: Check if directory exists by name
+      tags: ["Items: Directories"]
+      description: Check if a directory exists inside a parent with a given name
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parent:
+                  type: string
+                  example: uuidv4
+                nameHashed:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      exists:
+                        type: string
+                        example: boolean
+                      uuid:
+                        type: string
+                        example: string?
                 xml:
                   name: main
       x-codegen-request-body-name: body
   /dir/size:
     post:
-      tags:
-      - dir
+      summary: Get directory size
+      tags: ["Items: Directories"]
       description: Retrieve directory size
       requestBody:
         description: Body JSON
@@ -1260,331 +1359,10 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
-  /dir/size/link:
-    post:
-      tags:
-      - dir
-      description: Retrieve public link directory size
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                linkUUID:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      size:
-                        type: string
-                        example: number
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /file:
-    post:
-      tags:
-      - file
-      description: Retrieve file info
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      uuid:
-                        type: string
-                        example: uuidv4
-                      region:
-                        type: string
-                        example: string
-                      bucket:
-                        type: string
-                        example: string
-                      nameEncrypted:
-                        type: string
-                        example: string
-                      nameHashed:
-                        type: string
-                        example: string
-                      sizeEncrypted:
-                        type: string
-                        example: string
-                      mimeEncrypted:
-                        type: string
-                        example: string
-                      metadata:
-                        type: string
-                        example: string
-                      size:
-                        type: string
-                        example: number
-                      parent:
-                        type: string
-                        example: uuidv4
-                      versioned:
-                        type: string
-                        example: boolean
-                      trash:
-                        type: string
-                        example: boolean
-                      version:
-                        type: string
-                        example: number
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /file/link/status:
-    post:
-      tags:
-      - file
-      description: Retrieve file public link status
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      uuid:
-                        type: string
-                        example: uuidv4
-                      enabled:
-                        type: string
-                        example: boolean
-                      expiration:
-                        type: string
-                        example: number
-                      expirationText:
-                        type: string
-                        example: string
-                      downloadBtn:
-                        type: string
-                        example: boolean
-                      password:
-                        type: string
-                        example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /file/link/edit:
-    post:
-      tags:
-      - file
-      description: Edit a file's public link
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                fileUUID:
-                  type: string
-                  example: uuidv4
-                expiration:
-                  type: string
-                  example: string
-                password:
-                  type: string
-                  example: string
-                passwordHashed:
-                  type: string
-                  example: string
-                downloadBtn:
-                  type: string
-                  example: boolean
-                salt:
-                  type: string
-                  example: string
-                type:
-                  type: string
-                  example: enable | disable
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /file/restore:
-    post:
-      tags:
-      - file
-      description: Restore a file from the trash
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /file/present:
-    post:
-      tags:
-      - file
-      description: Check if a file exists
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      present:
-                        type: string
-                        example: boolean
-                      versioned:
-                        type: string
-                        example: boolean | undefined
-                      trash:
-                        type: string
-                        example: boolean | undefined
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
   /dir/move:
     post:
-      tags:
-      - dir
+      summary: Move directory
+      tags: ["Items: Directories"]
       description: Move a directory
       requestBody:
         description: Body JSON
@@ -1620,103 +1398,10 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
-  /dir/present:
-    post:
-      tags:
-      - dir
-      description: Check if a directory exists
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      present:
-                        type: string
-                        example: boolean
-                      trash:
-                        type: string
-                        example: boolean | undefined
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /dir/exists:
-    post:
-      tags:
-      - dir
-      description: Check if a directory exists inside a parent with a given name
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                parent:
-                  type: string
-                  example: uuidv4
-                nameHashed:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      exists:
-                        type: string
-                        example: boolean
-                      uuid:
-                        type: string
-                        example: string?
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
   /dir/rename:
     post:
-      tags:
-      - dir
+      summary: Rename directory
+      tags: ["Items: Directories"]
       description: Rename a directory
       requestBody:
         description: Body JSON
@@ -1755,215 +1440,47 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
-  /file/exists:
-    post:
-      tags:
-      - file
-      description: Check if a file exists inside a parent with a given name
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                parent:
-                  type: string
-                  example: uuidv4
-                nameHashed:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      exists:
-                        type: string
-                        example: boolean
-                      uuid:
-                        type: string
-                        example: string?
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /file/move:
-    post:
-      tags:
-      - file
-      description: Move a file
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                to:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /file/rename:
-    post:
-      tags:
-      - file
-      description: Rename a file
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                name:
-                  type: string
-                  example: string
-                metadata:
-                  type: string
-                  example: string
-                nameHashed:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /file/delete/permanent:
-    post:
-      tags:
-      - file
-      description: Delete a file permanently
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /file/trash:
-    post:
-      tags:
-      - file
-      description: Move a file to the trash
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
   /dir/trash:
     post:
-      tags:
-      - dir
+      summary: Trash directory
+      tags: ["Items: Directories"]
       description: Move a directory to the trash
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /dir/restore:
+    post:
+      summary: Restore directory
+      tags: ["Items: Directories"]
+      description: Restore a directory from the trash
       requestBody:
         description: Body JSON
         content:
@@ -1997,8 +1514,8 @@ paths:
       x-codegen-request-body-name: body
   /dir/delete/permanent:
     post:
-      tags:
-      - dir
+      summary: Delete directory permanently
+      tags: ["Items: Directories"]
       description: Delete a directory permanently
       requestBody:
         description: Body JSON
@@ -2031,11 +1548,50 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
-  /shared/in:
+  /dir/color:
     post:
-      tags:
-      - shared
-      description: Get shared in items
+      summary: Change directory color
+      tags: ["Items: Directories"]
+      description: Change folder color
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+                color:
+                  type: string
+                  example: default | blue | green | purple | gray | red
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /dir/shared:
+    post:
+      summary: Check if directory is shared
+      tags: ["Items: Directories"]
+      description: Check if a folder is shared
       requestBody:
         description: Body JSON
         content:
@@ -2067,67 +1623,32 @@ paths:
                   data:
                     type: object
                     properties:
-                      uploads:
+                      sharing:
                         type: string
-                        example: array
-                      folders:
+                        example: boolean
+                      users:
                         type: string
-                        example: array
+                        example: "{ email: string, publicKey: string }[]"
                 xml:
                   name: main
       x-codegen-request-body-name: body
-  /shared/out:
+  /trash/empty: #edited
     post:
-      tags:
-      - shared
-      description: Get shared out items
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                receiverId:
-                  type: string
-                  example: number
-        required: true
+      tags: [Items]
+      summary: Empty trash
+      description: Permanently deletes all trash items.
+      security: [api_key: []]
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      uploads:
-                        type: string
-                        example: array
-                      folders:
-                        type: string
-                        example: array
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
+                $ref: "#/components/schemas/response"
   /item/favorite:
     post:
-      tags:
-      - item
+      summary: Change item favorited
+      tags: [Items]
       description: Change item favorite status
       requestBody:
         description: Body JSON
@@ -2178,187 +1699,10 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
-  /item/share:
-    post:
-      tags:
-      - item
-      description: Share an item to a user
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                parent:
-                  type: string
-                  example: string
-                email:
-                  type: string
-                  example: string
-                type:
-                  type: string
-                  example: file | folder
-                metadata:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /item/shared/rename:
-    post:
-      tags:
-      - item
-      description: Rename a shared item
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                receiverId:
-                  type: string
-                  example: number
-                metadata:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /item/linked/rename:
-    post:
-      tags:
-      - item
-      description: Rename a public linked folder item
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                linkUUID:
-                  type: string
-                  example: uuidv4
-                metadata:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /file/link/password:
-    post:
-      tags:
-      - file
-      description: Check if a file public link is password protected
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      hasPassword:
-                        type: string
-                        example: boolean
-                      salt:
-                        type: string
-                        example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
   /file/link/info:
     post:
-      tags:
-      - file
+      summary: Get file public link info
+      tags: [Public Links]
       description: Get public link info of a file
       requestBody:
         description: Body JSON
@@ -2430,10 +1774,169 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
+  /file/link/status:
+    post:
+      summary: Get file public link status
+      tags: [Public Links]
+      description: Retrieve file public link status
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                        example: uuidv4
+                      enabled:
+                        type: string
+                        example: boolean
+                      expiration:
+                        type: string
+                        example: number
+                      expirationText:
+                        type: string
+                        example: string
+                      downloadBtn:
+                        type: string
+                        example: boolean
+                      password:
+                        type: string
+                        example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /file/link/edit:
+    post:
+      summary: Edit file public link
+      tags: [Public Links]
+      description: Edit a file's public link
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+                fileUUID:
+                  type: string
+                  example: uuidv4
+                expiration:
+                  type: string
+                  example: string
+                password:
+                  type: string
+                  example: string
+                passwordHashed:
+                  type: string
+                  example: string
+                downloadBtn:
+                  type: string
+                  example: boolean
+                salt:
+                  type: string
+                  example: string
+                type:
+                  type: string
+                  example: enable | disable
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /file/link/password:
+    post:
+      summary: Check if file public link is password-protected
+      tags: [Public Links]
+      description: Check if a file public link is password protected
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      hasPassword:
+                        type: string
+                        example: boolean
+                      salt:
+                        type: string
+                        example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
   /dir/link/info:
     post:
-      tags:
-      - dir
+      summary: Get directory public link info
+      tags: [Public Links]
       description: Get public link info of a folder
       requestBody:
         description: Body JSON
@@ -2484,10 +1987,70 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
+  /dir/link/status:
+    post:
+      summary: Get directory public link status
+      tags: [Public Links]
+      description: Retrieve status of a folder public link
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      exists:
+                        type: string
+                        example: boolean
+                      uuid:
+                        type: string
+                        example: uuidv4?
+                      key:
+                        type: string
+                        example: string?
+                      expiration:
+                        type: string
+                        example: number?
+                      expirationText:
+                        type: string
+                        example: string?
+                      downloadBtn:
+                        type: string
+                        example: 0 | 1?
+                      password:
+                        type: string
+                        example: string?
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
   /dir/link/content:
     post:
-      tags:
-      - dir
+      summary: Get directory public link content
+      tags: [Public Links]
       description: Get public link info of a folder
       requestBody:
         description: Body JSON
@@ -2535,11 +2098,116 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
-  /dir/shared:
+  /dir/link/edit:
     post:
-      tags:
-      - dir
-      description: Check if a folder is shared
+      summary: Edit directory public link
+      tags: [Public Links]
+      description: Edit a folder's public link
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+                expiration:
+                  type: string
+                  example: string
+                password:
+                  type: string
+                  example: string
+                passwordHashed:
+                  type: string
+                  example: string
+                downloadBtn:
+                  type: string
+                  example: boolean
+                salt:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /dir/link/add:
+    post:
+      summary: Add item to directory public link
+      tags: [Public Links]
+      description: Add an item to a folder public link
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+                parent:
+                  type: string
+                  example: uuidv4
+                linkUUID:
+                  type: string
+                  example: uuidv4
+                type:
+                  type: string
+                  example: file | folder
+                metadata:
+                  type: string
+                  example: encrypted string
+                key:
+                  type: string
+                  example: encrypted string
+                expiration:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /dir/link/remove:
+    post:
+      summary: Remove directory public link
+      tags: [Public Links]
+      description: Remove a public link from a folder
       requestBody:
         description: Body JSON
         content:
@@ -2568,22 +2236,151 @@ paths:
                   code:
                     type: string
                     example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /dir/size/link:
+    post:
+      summary: Get directory public link size
+      tags: [Public Links]
+      description: Retrieve public link directory size
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+                linkUUID:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
                   data:
                     type: object
                     properties:
-                      sharing:
+                      size:
                         type: string
-                        example: boolean
-                      users:
+                        example: number
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /dir/download/link:
+    post:
+      summary: Get directory tree of public link
+      tags: [Public Links]
+      description: Retrieve complete folder tree of a public link (flattened)
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+                parent:
+                  type: string
+                  example: uuidv4
+                password:
+                  type: string
+                  example: string | none
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      files:
                         type: string
-                        example: "{ email: string, publicKey: string }[]"
+                        example: array
+                      folders:
+                        type: string
+                        example: array
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /item/linked/rename:
+    post:
+      summary: Rename public linked directory item
+      tags: [Public Links]
+      description: Rename a public linked folder item
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+                linkUUID:
+                  type: string
+                  example: uuidv4
+                metadata:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
                 xml:
                   name: main
       x-codegen-request-body-name: body
   /dir/linked:
     post:
-      tags:
-      - dir
+      summary: Check if directory is public linked
+      tags: [Public Links]
       description: Check if a folder is public linked
       requestBody:
         description: Body JSON
@@ -2627,8 +2424,8 @@ paths:
       x-codegen-request-body-name: body
   /item/linked:
     post:
-      tags:
-      - item
+      summary: Check if item is in public link
+      tags: [Public Links]
       description: Check if an item is in a public link
       requestBody:
         description: Body JSON
@@ -2670,10 +2467,196 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
+  /shared/in:
+    post:
+      summary: Get shared in items
+      tags: [Shared]
+      description: Get shared in items
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      uploads:
+                        type: string
+                        example: array
+                      folders:
+                        type: string
+                        example: array
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /shared/out:
+    post:
+      summary: Get shared out items
+      tags: [Shared]
+      description: Get shared out items
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+                receiverId:
+                  type: string
+                  example: number
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      uploads:
+                        type: string
+                        example: array
+                      folders:
+                        type: string
+                        example: array
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /dir/download/shared:
+    post:
+      summary: Get directory tree of shared folder
+      tags: [Shared]
+      description: Retrieve complete folder tree of a shared folder (flattened)
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                  data:
+                    type: object
+                    properties:
+                      files:
+                        type: string
+                        example: array
+                      folders:
+                        type: string
+                        example: array
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
+  /item/share:
+    post:
+      summary: Create share out
+      tags: [Shared]
+      description: Share an item to a user
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+                parent:
+                  type: string
+                  example: string
+                email:
+                  type: string
+                  example: string
+                type:
+                  type: string
+                  example: file | folder
+                metadata:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
   /item/shared:
     post:
-      tags:
-      - item
+      summary: Check if item is shared
+      tags: [Shared]
       description: Check if an item is shared
       requestBody:
         description: Body JSON
@@ -2715,10 +2698,52 @@ paths:
                 xml:
                   name: main
       x-codegen-request-body-name: body
+  /item/shared/rename:
+    post:
+      summary: Rename shared item
+      tags: [Shared]
+      description: Rename a shared item
+      requestBody:
+        description: Body JSON
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: uuidv4
+                receiverId:
+                  type: string
+                  example: number
+                metadata:
+                  type: string
+                  example: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: boolean
+                  message:
+                    type: string
+                    example: string
+                  code:
+                    type: string
+                    example: string
+                xml:
+                  name: main
+      x-codegen-request-body-name: body
   /item/shared/in/remove:
     post:
-      tags:
-      - item
+      summary: Remove shared in item
+      tags: [Shared]
       description: Remove an item that is shared with your account
       requestBody:
         description: Body JSON
@@ -2753,8 +2778,8 @@ paths:
       x-codegen-request-body-name: body
   /item/shared/out/remove:
     post:
-      tags:
-      - item
+      summary: Remove shared out item
+      tags: [Shared]
       description: Remove an item that is shared with another user
       requestBody:
         description: Body JSON
@@ -2787,2112 +2812,6 @@ paths:
                   code:
                     type: string
                     example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/send:
-    post:
-      tags:
-      - chat
-      description: Send a chat message
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                conversation:
-                  type: string
-                  example: uuidv4
-                uuid:
-                  type: string
-                  example: uuidv4
-                message:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/mute:
-    post:
-      tags:
-      - chat
-      description: Mute/unmute a chat
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                mute:
-                  type: string
-                  example: boolean
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/edit:
-    post:
-      tags:
-      - chat
-      description: Edit a chat message
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                conversation:
-                  type: string
-                  example: uuidv4
-                uuid:
-                  type: string
-                  example: uuidv4
-                message:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/message/embed/disable:
-    post:
-      tags:
-      - chat
-      description: Disable message embed
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/conversations/delete:
-    post:
-      tags:
-      - chat
-      description: Delete a conversation
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/conversations/leave:
-    post:
-      tags:
-      - chat
-      description: Leave a conversation
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/messages:
-    post:
-      tags:
-      - chat
-      description: Fetch chat messages
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                to:
-                  type: string
-                  example: string
-                timestamp:
-                  type: string
-                  example: number
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: string
-                    example: array
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/delete:
-    post:
-      tags:
-      - chat
-      description: Delete a chat message
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/typing:
-    post:
-      tags:
-      - chat
-      description: Send typing events
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                to:
-                  type: string
-                  example: string
-                type:
-                  type: string
-                  example: up | down
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/conversations:
-    get:
-      tags:
-      - chat
-      description: Fetch conversations
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: string
-                    example: array
-                xml:
-                  name: main
-  /chat/unread:
-    get:
-      tags:
-      - chat
-      description: Fetch count of unread chat messages
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      unread:
-                        type: string
-                        example: number
-                xml:
-                  name: main
-  /chat/conversations/unread:
-    post:
-      tags:
-      - chat
-      description: Fetch count of unread chat messages
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      unread:
-                        type: string
-                        example: number
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/read:
-    post:
-      tags:
-      - chat
-      description: Delete unread chat notifications
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-  /chat/conversations/read:
-    post:
-      tags:
-      - chat
-      description: Delete unread chat notifications
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/conversations/online:
-    post:
-      tags:
-      - chat
-      description: Fetch online users in conversation
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                conversation:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: string
-                    example: "{ userId: number; lastActive: number; appearOffline:\
-                      \ boolean }[]"
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/conversations/create:
-    post:
-      tags:
-      - chat
-      description: Create a conversation
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                metadata:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/conversations/name/edit:
-    post:
-      tags:
-      - chat
-      description: Edit conversation name
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                name:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/conversations/participants/add:
-    post:
-      tags:
-      - chat
-      description: Add a participant to a chat conversation
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                contactUUID:
-                  type: string
-                  example: uuidv4
-                metadata:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/conversations/participants/remove:
-    post:
-      tags:
-      - chat
-      description: Remove a participant from a chat conversation
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                userId:
-                  type: string
-                  example: number
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /chat/lastFocus:
-    get:
-      tags:
-      - chat
-      description: Retrieve lastFocus timestamp of conversations
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: string
-                    example: "{ uuid: uuidv4, lastFocus: number }[]"
-                xml:
-                  name: main
-    post:
-      tags:
-      - chat
-      description: Update lastFocus timestamp of conversations
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                conversations:
-                  type: string
-                  example: "{ uuid: uuidv4, lastFocus: number }[]"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes:
-    get:
-      tags:
-      - notes
-      description: Fetch all notes
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: string
-                    example: array
-                xml:
-                  name: main
-  /notes/content:
-    post:
-      tags:
-      - notes
-      description: Fetch note content
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      preview:
-                        type: string
-                        example: string
-                      content:
-                        type: string
-                        example: string
-                      editedTimestamp:
-                        type: string
-                        example: number
-                      editorId:
-                        type: string
-                        example: number
-                      type:
-                        type: string
-                        example: text | md | rich | code | checklist
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/history:
-    post:
-      tags:
-      - notes
-      description: Fetch note history
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: string
-                    example: "{ id: number, preview: string, content: string, editedTimestamp:\
-                      \ number, editorId: number, type: text | md | rich | code |\
-                      \ checklist }[]"
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/history/restore:
-    post:
-      tags:
-      - notes
-      description: Restore a note from history
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                id:
-                  type: string
-                  example: number
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/create:
-    post:
-      tags:
-      - notes
-      description: Create a note
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                title:
-                  type: string
-                  example: string
-                metadata:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/delete:
-    post:
-      tags:
-      - notes
-      description: Delete a note
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/trash:
-    post:
-      tags:
-      - notes
-      description: Trash a note
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/archive:
-    post:
-      tags:
-      - notes
-      description: Archive a note
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/restore:
-    post:
-      tags:
-      - notes
-      description: Restore a note
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/pinned:
-    post:
-      tags:
-      - notes
-      description: Pin or unpin a note
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                pinned:
-                  type: string
-                  example: boolean
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/favorite:
-    post:
-      tags:
-      - notes
-      description: Favorite or unfavorite a note
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                favorite:
-                  type: string
-                  example: boolean
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/participants/add:
-    post:
-      tags:
-      - notes
-      description: Add a participant to a note
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                contactUUID:
-                  type: string
-                  example: uuidv4
-                metadata:
-                  type: string
-                  example: string
-                permissionsWrite:
-                  type: string
-                  example: boolean
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/participants/remove:
-    post:
-      tags:
-      - notes
-      description: Remove a participant to a note
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                userId:
-                  type: string
-                  example: number
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/participants/permissions:
-    post:
-      tags:
-      - notes
-      description: Change participant permissions
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                userId:
-                  type: string
-                  example: number
-                permissionsWrite:
-                  type: string
-                  example: boolean
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/type/change:
-    post:
-      tags:
-      - notes
-      description: Change note type
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                type:
-                  type: string
-                  example: text | md | code | rich | checklist
-                preview:
-                  type: string
-                  example: string
-                content:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/title/edit:
-    post:
-      tags:
-      - notes
-      description: Edit note title
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                title:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/content/edit:
-    post:
-      tags:
-      - notes
-      description: Edit content of a note
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                preview:
-                  type: string
-                  example: string
-                content:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/tags:
-    get:
-      tags:
-      - notes
-      description: Fetch all tags
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: string
-                    example: "{ uuid: string, name: string, favorite: boolean, editedTimestamp:\
-                      \ number, createdTimestamp: number }[]"
-                xml:
-                  name: main
-  /notes/tags/create:
-    post:
-      tags:
-      - notes
-      description: Create a tag
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      uuid:
-                        type: string
-                        example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/tags/rename:
-    post:
-      tags:
-      - notes
-      description: Rename a tag
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                name:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/tags/delete:
-    post:
-      tags:
-      - notes
-      description: Delete a tag
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/tags/favorite:
-    post:
-      tags:
-      - notes
-      description: Favorite a tag
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                favorite:
-                  type: string
-                  example: boolean
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/tag:
-    post:
-      tags:
-      - notes
-      description: Tag a note
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                tag:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /notes/untag:
-    post:
-      tags:
-      - notes
-      description: Untag a note
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-                tag:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /contacts:
-    get:
-      tags:
-      - contacts
-      description: Fetch all contacts
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: string
-                    example: "{ uuid: string, userId: string, email: string, avatar:\
-                      \ string | null, nickName: string, lastActive: number, timestamp:\
-                      \ number }[]"
-                xml:
-                  name: main
-  /contacts/requests/in:
-    get:
-      tags:
-      - contacts
-      description: Fetch all incoming contact requests
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: string
-                    example: "{ uuid: string, userId: number, email: string, avatar:\
-                      \ string | null, nickName: string, timestamp: number }[]"
-                xml:
-                  name: main
-  /contacts/requests/in/count:
-    get:
-      tags:
-      - contacts
-      description: Fetch all incoming contact requests
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: string
-                    example: number
-                xml:
-                  name: main
-  /contacts/requests/out:
-    get:
-      tags:
-      - contacts
-      description: Fetch all outgoing contact requests
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: string
-                    example: "{ uuid: string, userId: number, email: string, avatar:\
-                      \ string | null, firstName: string | null, lastName: string\
-                      \ | null, timestamp: number }[]"
-                xml:
-                  name: main
-  /contacts/requests/out/delete:
-    post:
-      tags:
-      - contacts
-      description: Delete outgoing contact request
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /contacts/requests/send:
-    post:
-      tags:
-      - contacts
-      description: Send a contact request
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /contacts/requests/accept:
-    post:
-      tags:
-      - contacts
-      description: Accept a contact request
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /contacts/requests/deny:
-    post:
-      tags:
-      - contacts
-      description: Deny a contact request
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /contacts/delete:
-    post:
-      tags:
-      - contacts
-      description: Delete a contact
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /contacts/blocked:
-    get:
-      tags:
-      - contacts
-      description: Fetch all blocked contacts
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: string
-                    example: "{ uuid: uuidv4, userId: number, email: string, avatar:\
-                      \ string | null, nickName: string, timestamp: number }[]"
-                xml:
-                  name: main
-  /contacts/blocked/delete:
-    post:
-      tags:
-      - contacts
-      description: Delete a contact block
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                  example: uuidv4
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                xml:
-                  name: main
-      x-codegen-request-body-name: body
-  /contacts/blocked/add:
-    post:
-      tags:
-      - contacts
-      description: Add a contact block
-      requestBody:
-        description: Body JSON
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  example: string
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: boolean
-                  message:
-                    type: string
-                    example: string
-                  code:
-                    type: string
-                    example: string
-                  data:
-                    type: object
-                    properties:
-                      uuid:
-                        type: string
-                        example: uuidv4
                 xml:
                   name: main
       x-codegen-request-body-name: body
