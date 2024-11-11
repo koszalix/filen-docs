@@ -2,7 +2,7 @@
 sidebar_position: 3
 ---
 
-import ApiEndpointLink from "../../../src/components/apiEndpointLink";
+import ApiEndpointLink from "../../../src/components/apiEndpointLink"
 
 # Files and directories
 
@@ -14,42 +14,37 @@ Everything described here is implemented in our TypeScript SDK, so you can alway
 
 :::
 
-
 ### General information
 
 #### UUIDs
 
-Since all Filen user data is encrypted on the client-side, including directory names, every file and directory is identified by its UUID. Therefore, to access any file or directory by its path, you need to start from the root directory and traverse the path hierarchy from there. 
+Since all Filen user data is encrypted on the client-side, including directory names, every file and directory is identified by its UUID. Therefore, to access any file or directory by its path, you need to start from the root directory and traverse the path hierarchy from there.
 
 #### File and directory metadata
 
-The metadata of files (including name, MIME type, size, timestamp and encryption key) and directories (its name) is always client-side encrypted using the master key, as described in the [Encryption guide](./encryption#metadata-encryption). 
+The metadata of files (including name, mime type, size, timestamp and encryption key) and directories (its name) is always client-side encrypted using the master key, as described in the [Cryptography guide](./cryptography#data-encryption).
 
 #### File chunks
 
-The binary datas of files is saved in chunks of 1MiB. The chunk's data is encrypted as described in the [Encryption guide](./encryption#data-encryption). A randomly generated encryption key is used for each file's data. 
-
+The binary data of files is saved in chunks of 1MiB. The chunk's data is encrypted as described in the [Cryptography guide](./cryptography#data-encryption). A randomly generated encryption key is used for each file.
 
 ## Navigating the file tree
-
 
 ### User root directory
 
 To get the user's root (`/`) directory's UUID, simply call <ApiEndpointLink endpoint="/v3/user/baseFolder" slug="get-user-base-directory" />.
 
-
 ### Listing a directory
 
-Once you have a directory's UUID, you can list the files and directories inside it using <ApiEndpointLink endpoint="/v3/dir/content" slug="get-directory-content" />. Note that the contained files are named `uploads`, the directories `folders`. You'll also need to decrypt item metadata (including an item's name). All this is decribed in full detail in the endpoint documentation. 
+Once you have a directory's UUID, you can list the files and directories inside it using <ApiEndpointLink endpoint="/v3/dir/content" slug="get-directory-content" />. Note that the contained files are named `uploads`, the directories `folders`. You'll also need to decrypt item metadata (including an item's name). All this is decribed in full detail in the endpoint documentation.
 
-If you want to get a directory's UUID from its path, you need to start at the root directory and traverse the entire path, repeatedly getting the UUID for the next path segment from a directory's list of subdirectories. 
-
+If you want to get a directory's UUID from its path, you need to start at the root directory and traverse the entire path, repeatedly getting the UUID for the next path segment from a directory's list of subdirectories.
 
 ## Downloading and uploading files
 
 ### Downloading a file
 
-Once you've gotten a file's UUID (and other metadata) as described above, you can download it by performing the following steps **for every file chunk**. The number of chunks a file consists of is part of the file metadata, e. g. from <ApiEndpointLink endpoint="/v3/dir/content" slug="get-directory-content" /> or <ApiEndpointLink endpoint="/v3/file" slug="get-file-info" />. 
+Once you've got a file's UUID (and other metadata) as described above, you can download it by performing the following steps **for every file chunk**. The number of chunks a file consists of is part of the file metadata, e. g. from <ApiEndpointLink endpoint="/v3/dir/content" slug="get-directory-content" /> or <ApiEndpointLink endpoint="/v3/file" slug="get-file-info" />.
 
 After downloading and decrypting every chunk, simply concatenate the bytes to get the original file.
 
@@ -57,17 +52,16 @@ After downloading and decrypting every chunk, simply concatenate the bytes to ge
 
 To download the file chunk, perform an authenticated GET request to `https://<host>/<region>/<bucket>/<uuid>/<chunk>`:
 
-- `<host>`: randomly selected from `egest.filen.io`, `egest.filen.net`, `egest.filen-1.net`, `egest.filen-2.net`, ..., `egest.filen-6.net` (see the [API Specs introduction](/docs/api/specs#api-hosts))
-- `<region>` and `<bucket>`: specified in file metadata
-- `<uuid>`: the file's UUID
-- `<chunk>`: the chunk index, starting from 0
+-   `<host>`: randomly selected from `egest.filen.io`, `egest.filen.net`, `egest.filen-1.net`, `egest.filen-2.net`, ..., `egest.filen-6.net` (see the [API Specs introduction](/docs/api/specs#api-hosts))
+-   `<region>` and `<bucket>`: specified in file metadata
+-   `<uuid>`: the file's UUID
+-   `<chunk>`: the chunk index, starting from 0
 
 This will return the encrypted chunk data.
 
 #### Decrypt chunk
 
-To decrypt the chunk data, use [data decryption](./encryption#data-decryption). The encryption key used here is from the file metadata's encrypted `metadata`.
-
+To decrypt the chunk data, use [data decryption](./cryptography#data-decryption). The encryption key used here is from the file metadata's encrypted `metadata`.
 
 ### Uploading a file
 
@@ -75,42 +69,43 @@ To upload a file (change a file or create a new file), perform the following ste
 
 #### File UUID and encryption key
 
-Create a new random UUIDv4 for the file, even if you're overwriting an existing file. Generate a cryptographically secure random string of length 12 for the encryption key (the key used to encrypt this file's data). 
+Create a new random UUIDv4 for the file, even if you're overwriting an existing file. Generate a cryptographically secure random string of length 12 for the encryption key (the key used to encrypt this file's data).
 
 #### Read file data and split into chunks
 
-Read the file's bytes, and split them into chunks of 1MiB = 1.048.576 bytes. This should be streamed to account for larger files, as should the encrypting and uploading of chunks. While the last (or only) chunk can be smaller than 1MiB, it is not possible to upload empty files to Filen. 
+Read the file's bytes, and split them into chunks of 1MiB = 1.048.576 bytes. This should be streamed to account for larger files, as should the encrypting and uploading of chunks. While the last (or only) chunk can be smaller than 1MiB, it is not possible to upload empty files to Filen.
 
 #### Encrypt chunk
 
-To encrypt a chunk, use [data encryption](./encryption#data-encryption) with the encryption key generated above.
+To encrypt a chunk, use [data encryption](./cryptography#data-encryption) with the encryption key generated above.
 
 #### Upload chunk
 
 To upload the file chunk, perform an authenticated POST request to `https://<host>/v3/upload` with additional [query parameters](https://en.wikipedia.org/wiki/Query_string#:~:text=https%3A//example.com/path/to/page%3Fname%3Dferret%26color%3Dpurple):
 
-- `<host>`: randomly selected from `ingest.filen.io`, `ingest.filen.net`, `ingest.filen-1.net`, `ingest.filen-2.net`, ..., `ingest.filen-6.net` (see the [API Specs introduction](/docs/api/specs#api-hosts))
-- query param `uuid`: the file's UUID
-- query param `index`: the chunk index, starting from 0
-- query param `parent`: the parent directory's UUID
-- query param `uploadKey`: #todo
-- query param `hash`: the SHA-512 hash of the encrypted data, hex-encoded
+-   `<host>`: randomly selected from `ingest.filen.io`, `ingest.filen.net`, `ingest.filen-1.net`, `ingest.filen-2.net`, ..., `ingest.filen-6.net` (see the [API Specs introduction](/docs/api/specs#api-hosts))
+-   query param `uuid`: the file's UUID
+-   query param `index`: the chunk index, starting from 0
+-   query param `parent`: the parent directory's UUID
+-   query param `uploadKey`: a random 32 byte string used for authenticating chunk uploads of your file (use the same string for all chunks)
+-   query param `hash`: the SHA-512 hash of the encrypted data, hex-encoded
 
-Send the encrypted chunk data in the request body. 
+Send the encrypted chunk data in the request body.
 
-The response body will contain a JSON object of the form (TypeScript type definition): 
+The response body will contain a JSON object of the form (TypeScript type definition):
+
 ```ts
 {
     bucket: string,
     region: string,
 }
 ```
-The bucket and region will be the same for every chunk upload. 
+
+The bucket and region will be the same for every chunk upload.
 
 #### Mark upload as completed
 
-When all chunk uploads are finished, you need to mark the file upload as completed by calling <ApiEndpointLink endpoint="/v3/upload/done" slug="mark-an-upload-completed" />. 
-
+When all chunk uploads are finished, you need to mark the file upload as completed by calling <ApiEndpointLink endpoint="/v3/upload/done" slug="mark-an-upload-completed" />.
 
 ## Managing files and directories
 
@@ -124,8 +119,7 @@ To trash a file, call <ApiEndpointLink endpoint="/v3/file/trash" slug="trash-fil
 
 To trash a directory, call <ApiEndpointLink endpoint="/v3/dir/trash" slug="trash-directory" />. To permanently delete a directory (instead of moving it to trash), call <ApiEndpointLink endpoint="/v3/dir/delete/permanent" slug="permanently-delete-directory" />.
 
-Many features that are not mentioned here are documented comprehensively in the [full API specification](../endpoints-overview). 
-
+Many features that are not mentioned here are documented comprehensively in the [full API specification](../endpoints-overview).
 
 <!---
 

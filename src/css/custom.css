@@ -1,47 +1,48 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap");
 
 :root {
-  /* colors */
-  --ifm-color-primary: #ffffff;
-  --ifm-color-primary-dark: #e6e6e6;
-  --ifm-color-primary-darker: #d9d9d9;
-  --ifm-color-primary-darkest: #b3b3b3;
-  --ifm-color-primary-light: #ffffff;
-  --ifm-color-primary-lighter: #ffffff;
-  --ifm-color-primary-lightest: #ffffff;
-  --ifm-background-color: #09090b;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+	/* colors */
+	--ifm-color-primary: #ffffff;
+	--ifm-color-primary-dark: #e6e6e6;
+	--ifm-color-primary-darker: #d9d9d9;
+	--ifm-color-primary-darkest: #b3b3b3;
+	--ifm-color-primary-light: #ffffff;
+	--ifm-color-primary-lighter: #ffffff;
+	--ifm-color-primary-lightest: #ffffff;
+	--ifm-background-color: #09090b;
+	--docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 
-  /* font */
-  --ifm-font-family-base: 'Inter';
-  --ifm-heading-font-family: 'Inter';
-  --ifm-font-family-monospace: 'Roboto Mono';
+	/* font */
+	--ifm-font-family-base: "Inter";
+	--ifm-heading-font-family: "Inter";
+	--ifm-font-family-monospace: "Roboto Mono";
 }
 
 .footer--dark {
-  --ifm-footer-background-color: var(--ifm-hero-background-color) !important;
+	--ifm-footer-background-color: var(--ifm-hero-background-color) !important;
 }
 
 /* don't capitalize admonition headers */
 .admonitionHeading_node_modules-\@docusaurus-theme-classic-lib-theme-Admonition-Layout-styles-module {
-  text-transform: inherit !important;
+	text-transform: inherit !important;
 }
 
 /* give links an underline */
 article a {
-  --ifm-link-decoration: underline #989898;
+	--ifm-link-decoration: underline #989898;
 }
 
 /* muted text */
 span.muted {
-  opacity: 50%;
+	opacity: 50%;
 }
 
 /* header formatting */
-h2, h3 {
-  text-decoration: rgba(255, 255, 255, 0.4) underline;
+h2,
+h3 {
+	text-decoration: rgba(255, 255, 255, 0.4) underline;
 }
 h4 {
-  text-decoration: rgba(255, 255, 255, 0.4) wavy underline;
+	text-decoration: rgba(255, 255, 255, 0.4) wavy underline;
 }

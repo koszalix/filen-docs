@@ -3,9 +3,7 @@ sidebar_position: 6
 slug: /cli/webdav-and-s3-server
 ---
 
-
 # WebDAV and S3 server
-
 
 ## WebDAV server
 
@@ -19,19 +17,19 @@ For technical information, see also [FilenCloudDienste/filen-webdav on GitHub](h
 $ filen webdav --w-user <...> --w-password <...> [options...]
 ```
 
-Invoke `filen webdav` to start a local WebDAV server that mirrors your personal Filen Drive. 
+Invoke `filen webdav` to start a local WebDAV server that mirrors your personal Filen Drive.
 This might be useful for allowing local applications to access your Filen Drive via WebDAV.
 
 You must specify login credentials for connecting to the server using the `--w-user` and `--w-password` options (these credentials should be different from your Filen account credentials).
 
 Options:
 
-- `--w-https`: run the server on HTTPS instead of HTTP (using a self-signed certificate)
-- `--w-hostname`: which hostname the server should be started on (default is 0.0.0.0)
-- `--w-port`: which port the server should be started on (default is 80 or 443)
-- `--w-auth-scheme`: the authentication scheme the server should use, "basic" or "digest" (default is basic)
-- `--w-threads`: enables clustering, number of threads to use for the server (default is no clustering; explicitly set to 0 to set by CPU core count).
-  If you experience rate-limiting using this, using an [auth config](#authenticating) might help.
+-   `--w-https`: run the server on HTTPS instead of HTTP (using a self-signed certificate)
+-   `--w-hostname`: which hostname the server should be started on (default is 0.0.0.0)
+-   `--w-port`: which port the server should be started on (default is 80 or 443)
+-   `--w-auth-scheme`: the authentication scheme the server should use, "basic" or "digest" (default is basic)
+-   `--w-threads`: enables clustering, number of threads to use for the server (default is no clustering; explicitly set to 0 to set by CPU core count).
+    If you experience rate-limiting using this, using an [auth config](#authenticating) might help.
 
 ### Proxy mode
 
@@ -40,13 +38,12 @@ $ filen webdav-proxy [options...]
 ```
 
 Invoke the `filen webdav-proxy` to start a WebDAV server that allows any user to connect using their Filen account credentials and access their own Filen Drive.
-This might be useful when hosting a proxy server for multiple users. 
+This might be useful when hosting a proxy server for multiple users.
 Digest auth is not available for proxy mode.
 
 **Important:** In proxy mode, the password has to be formatted as `password=yoursecretpassword&twoFactorAuthentication=<RECOVERY_CODE_OR_6_DIGIT_OTP_CODE>` (you can also leave out the `&twoFactorAuthentication=...` part if 2FA is disabled for your account).
 
 Options: `--w-https`, `--w-hostname`, `--w-port`, `--w-threads` as above
-
 
 ## S3 server
 
@@ -63,8 +60,8 @@ For more information, including on S3 compatibility, see also [FilenCloudDienste
 
 Options:
 
-- `--s3-https`: run the server on HTTPS instead of HTTP (using a self-signed certificate)
-- `--s3-hostname`: which hostname the server should be started on (default is 0.0.0.0)
-- `--s3-port`: which port the server should be started on (default is 80 or 443)
-- `--s3-threads`: enables clustering, number of threads to use for the server (default is no clustering; explicitly set to 0 to set by CPU core count).
-  If you experience rate-limiting using this, using an [auth config](#authenticating) might help.
+-   `--s3-https`: run the server on HTTPS instead of HTTP (using a self-signed certificate)
+-   `--s3-hostname`: which hostname the server should be started on (default is 0.0.0.0)
+-   `--s3-port`: which port the server should be started on (default is 80 or 443)
+-   `--s3-threads`: enables clustering, number of threads to use for the server (default is no clustering; explicitly set to 0 to set by CPU core count).
+    If you experience rate-limiting using this, using an [auth config](#authenticating) might help.

@@ -1,0 +1,184 @@
+---
+sidebar_position: 2
+---
+
+# Cryptography
+
+This guide will introduce you to the various cryptographic methods we use.
+
+:::tip Refer to the official SDK
+
+Everything described here is implemented in our TypeScript SDK, so you can always look at the [SDK source](https://github.com/FilenCloudDienste/filen-sdk-ts/tree/main/src/crypto) if you need more information.
+
+:::
+
+## Files and directories (symmetric cryptography)
+
+Filen uses symmetric [AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard)-256-[GCM](https://en.wikipedia.org/wiki/Galois/Counter_Mode) cryptography. We differentiate between two basic encryption concerns: _Metadata encryption_ is our term for any small strings, like file metadata or directory names, that need to be encrypted. _Data encryption_ means encryption of binary file content.
+
+### General information on master keys
+
+The key used for encryption is always derived from the user's password; we call it the user's _master key_.
+
+When the user changes their password, a new master key (derived from the new password) is used for all subsequent encryption operations. This way, there is always exactly one master key used for encryption (the one derived from the current password); but one or more outdated master keys exist, which some files have been encrypted with. Therefore, there is a list (in encrypted form) of all master keys (past and current), which gets updated upon a password change, and which is fetched from Filen when logging in. When you decrypt a file (or anything that was encrypted using a master key), you need to try every master key on this list to find the correct one. We recommend traversing the list of current and past master keys from end to start for efficiency reasons.
+
+### Metadata encryption
+
+To metadata-encrypt a string, follow these steps:
+
+#### Transform key
+
+Transform the user's current (for most metadata operations, it's the last master key in the list of master keys) master key using [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2). This ensures we get a 256 bit key for encryption/decryption. The input key used is already derived and safe to transform.
+
+```ts
+// TypeScript SDK
+
+crypto.pbkdf2(key: keyToUse, salt: keyToUse, iterations: 1, bitLength: 256, hash: "sha512")
+```
+
+#### Encrypt and format
+
+Generate a cryptographically secure random string of length 12 for the cryptographic nonce. To finally encrypt the string, use AES-256-GCM with the transformed key, the nonce and the string as input data (usually stringified JSON). Concatenate the binary encrypted output and the auth tag, and stringify the result using base64 encoding. Finally, build the metadata encrypted string representation by concatenating the string `"002"` (for the encryption version), the nonce and the base64 string.
+
+```ts
+// TypeScript SDK
+
+const keyToUse = key ? key : this.config.masterKeys[this.config.masterKeys.length - 1]
+const iv = await generateRandomString({ length: 12 })
+const ivBuffer = this.textEncoder.encode(iv)
+
+const transformedKey = transform
+	? await pbkdf2({
+			password: keyToUse,
+			salt: keyToUse,
+			iterations: 1,
+			hash: "sha512",
+			bitLength: 256,
+			returnHex: false
+	  })
+	: this.textEncoder.encode(keyToUse)
+const dataBuffer = this.textEncoder.encode(metadata)
+const cipher = nodeCrypto.createCipheriv("aes-256-gcm", transformedKey, ivBuffer)
+const encrypted = Buffer.concat([cipher.update(dataBuffer), cipher.final()])
+const authTag = cipher.getAuthTag()
+
+return `002${iv}${Buffer.concat([encrypted, authTag]).toString("base64")}`
+```
+
+### Metadata decryption
+
+To metadata-decrypt a string, follow these steps:
+
+#### Check format
+
+Check that the string starts with the string `"002"` (this is the encryption version). A complete implementation should handle deprecated encryption versions for backwards compatibility (for technical reasons regarding the client-side encryption, there is always the possibility of encountering a metadata string still using the deprecated encryption version). Have a look at the [TypeScript SDK source](https://github.com/FilenCloudDienste/filen-sdk-ts/blob/f0de9d00726b113f9aecdb1ca9e33a23cde11977/src/crypto/decrypt.ts#L58-L63) for this.
+
+#### Transform key
+
+Now, transform the encryption key using the exact steps described [above](#transform-key). Since you can't know which key the string has been encrypted with, you need to try the derived key for every available master key.
+
+#### Decrypt
+
+Next, you need to separate the decryption algorithm inputs that were concatenated in the encryption process: Slice the input from index 3 to 15 to get the nonce (UTF-8 encoded), and from index 15 to get the encrypted string (base64 encoded). The encrypted string includes the auth tag in the last 16 bytes, the rest is the binary encrypted input. Use AES-256-GCM with the derived key, the nonce, the auth tag and the binary encrypted input to get the plaintext metadata string (if it represents a JSON object, parse it).
+
+```ts
+// TypeScript SDK
+
+const sliced = metadata.slice(0, 8)
+
+if (sliced === "U2FsdGVk") {
+	// Old and deprecated, not in use anymore, just here for backwards compatibility
+	return CryptoJS.AES.decrypt(metadata, key).toString(CryptoJS.enc.Utf8)
+} else {
+	const version = metadata.slice(0, 3)
+
+	if (version === "002") {
+		const keyBuffer = await pbkdf2({
+			password: key,
+			salt: key,
+			iterations: 1,
+			hash: "sha512",
+			bitLength: 256,
+			returnHex: false
+		})
+		const ivBuffer = Buffer.from(metadata.slice(3, 15), "utf-8")
+		const encrypted = Buffer.from(metadata.slice(15), "base64")
+		const authTag = encrypted.subarray(-16)
+		const cipherText = encrypted.subarray(0, encrypted.byteLength - 16)
+		const decipher = nodeCrypto.createDecipheriv("aes-256-gcm", keyBuffer, ivBuffer)
+
+		decipher.setAuthTag(authTag)
+
+		return Buffer.concat([decipher.update(cipherText), decipher.final()]).toString("utf-8")
+	}
+
+	throw new Error(`[crypto.decrypt.metadata] Invalid metadata version ${version}`)
+}
+```
+
+### Data encryption
+
+To encrypt raw file data, follow these steps:
+
+Generate a cryptogrpahically secure random string of length 12 for the cryptographic nonce. Use AES-256-GCM with the nonce, the binary input data and the encryption key (see the guide on file uploads for details on this encryption key). The byte array to upload is the concatenation of the nonce (as bytes) and the encrypted bytes.
+
+```ts
+// TypeScript SDK
+
+const iv = await generateRandomString({ length: 12 })
+const ivBuffer = Buffer.from(iv, "utf-8")
+const cipher = nodeCrypto.createCipheriv("aes-256-gcm", Buffer.from(key, "utf-8"), ivBuffer)
+const encrypted = Buffer.concat([cipher.update(data), cipher.final()])
+const authTag = cipher.getAuthTag()
+const ciphertext = Buffer.concat([encrypted, authTag])
+
+return Buffer.concat([ivBuffer, ciphertext])
+```
+
+### Data decryption
+
+To decrypt file data, follow these steps:
+
+Split the first 12 bytes off the encrypted bytes to get the cryptographic nonce, the rest is the encrypted file data. Use AES-256-GCM with the nonce, the encrypted file data and the encryption key (see the guide on file downloads for details on this encryption key). The result is the binary file data.
+
+## Shared items (asymmetric cryptography)
+
+Our asymmetric cryptography is simpler than it's counterpart. For items (files/directories) shared between Filen users, we use RSA encryption with PKCS1 OAEP (SHA512) Padding. Every user on the platform has their own keypair.
+
+#### Public key
+
+A user's public key is stored as a base64 encoded plain text key in DER format.
+
+#### Private key
+
+A user's private key is stored as a base64 encoded encrypted string in DER format. To decrypt the private key, please refer to the [above metadata](#metadata-decryption) cryptography guide.
+
+```ts
+// TypeScript SDK
+
+// Encrypt
+const pemKey = await derKeyToPem({ key: publicKey })
+const encrypted = nodeCrypto.publicEncrypt(
+	{
+		key: pemKey,
+		padding: nodeCrypto.constants.RSA_PKCS1_OAEP_PADDING,
+		oaepHash: "sha512"
+	},
+	this.textEncoder.encode(metadata)
+)
+
+return Buffer.from(encrypted).toString("base64")
+
+// Decrypt
+const pemKey = await derKeyToPem({ key: privateKey })
+const decrypted = nodeCrypto.privateDecrypt(
+	{
+		key: pemKey,
+		padding: nodeCrypto.constants.RSA_PKCS1_OAEP_PADDING,
+		oaepHash: "sha512"
+	},
+	Buffer.from(metadata, "base64")
+)
+
+return decrypted.toString("utf-8")
+```

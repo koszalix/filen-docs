@@ -3,22 +3,15 @@ sidebar_position: 1
 slug: /cli
 ---
 
-
 # Introduction
 
 The Filen CLI provides a set of useful tools for interacting with the cloud:
-- [Accessing your Filen Drive](./cli/access-filen-drive) in a stateless environment or [interactive mode](./cli/access-filen-drive#interactive-mode)
-- [Syncing](./cli/syncing) locations with the cloud (just like the Desktop app)
-- Mounting a [network drive](./cli/network-drive-mounting)
-- Running a [WebDAV mirror server](./cli/webdav-and-s3-server#webdav-server) of your [personal drive](./cli/webdav-and-s3-server#single-user), or multiple drives in [proxy mode](./cli/webdav-and-s3-server#proxy-mode)
-- Running an [S3 mirror server](./cli/webdav-and-s3-server#s3-server)
 
-:::warning Work in progress
-
-The CLI is still work in progress. Do not use it in production yet. It is not guaranteed to be stable.
-
-:::
-
+-   [Accessing your Filen Drive](./cli/access-filen-drive) in a stateless environment or [interactive mode](./cli/access-filen-drive#interactive-mode)
+-   [Syncing](./cli/syncing) locations with the cloud (just like the Desktop app)
+-   Mounting a [network drive](./cli/network-drive-mounting)
+-   Running a [WebDAV mirror server](./cli/webdav-and-s3-server#webdav-server) of your [personal drive](./cli/webdav-and-s3-server#single-user), or multiple drives in [proxy mode](./cli/webdav-and-s3-server#proxy-mode)
+-   Running an [S3 mirror server](./cli/webdav-and-s3-server#s3-server)
 
 ## Installation and updates
 
@@ -30,13 +23,13 @@ The Filen CLI includes an automatic updater that checks for a new release every 
 Invoke the CLI with the `--skip-update` flag to skip checking for updates.
 (Use the `--force-update` flag to check for updates even if it was recently checked.)
 
-
 ## Usage
 
 Global flags:
-- `--help`, `-h`: display usage information
-- `--verbose`, `-v`: display additional information
-- `--quiet`, `-q`: hide things like progress bars and additional logs
-- `--log-file <file>`: write logs to a file
+
+-   `--help`, `-h`: display usage information
+-   `--verbose`, `-v`: display additional information
+-   `--quiet`, `-q`: hide things like progress bars and additional logs
+-   `--log-file <file>`: write logs to a file
 
 For detailed information on how to use the CLI features, see the respective documentation pages.

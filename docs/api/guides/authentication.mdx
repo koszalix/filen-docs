@@ -2,56 +2,88 @@
 sidebar_position: 1
 ---
 
-import ApiEndpointLink from "../../../src/components/apiEndpointLink";
+import ApiEndpointLink from "../../../src/components/apiEndpointLink"
 
 # Authentication
 
-This guide will walk you through authenticating a user with Filen. 
+This guide will walk you through authenticating a user with Filen.
 
-:::tip Refer to the SDK
+:::tip Refer to the official SDK
 
-Everything described here is implemented in our TypeScript SDK, so you can always look at the [SDK source](https://github.com/FilenCloudDienste/filen-sdk-ts/blob/main/src/index.ts) if you need more information.
+Everything described here is implemented in our TypeScript SDK, so you can always look at the [SDK source](https://github.com/FilenCloudDienste/filen-sdk-ts/tree/main/src/index.ts) if you need more information.
 
 :::
 
 #### Fetch salt
 
-First, call <ApiEndpointLink endpoint="/v3/auth/info" slug="get-auth-info" /> with your user's email to fetch the user's password encryption salt.
+First, call <ApiEndpointLink endpoint="/v3/auth/info" slug="get-auth-info" /> with your user's email to fetch the user's password salt.
 
 #### Derive key
 
-Use [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) to derive a key from the raw password, using the fetched salt, 200 000 iterations and a key length of 64. Convert the result to a hex string and split it into two parts of equal length. The first part is the password used for logging in, the second part is the encryption master key (see the [Encryption](./encryption) guide). This is the corresponding code from the [TypeScript SDK](../../sdk):
+Use [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) to derive a key from the raw password, using the fetched salt, 200.000 iterations and a key length of 64. Convert the result to a hex string and split it into two parts of equal length. The first part is the password used for logging in, the second part is the encryption master key (see the [Encryption](./encryption) guide). The login password is then hashed again using SHA512. This is the corresponding code from the [TypeScript SDK](../../sdk):
 
 ```ts
-nodeCrypto.pbkdf2(password, salt, 200000, 512 / 8, "sha512", (_, result) => {
-    const derivedKey = result.toString("hex");
-    const derivedPassword = derivedKey.substring(derivedKey.length / 2, derivedKey.length);
-    const derivedMasterKey = derivedKey.substring(0, derivedKey.length / 2);
-})
+/**
+ * Generates/derives the password and master key based on the auth version. Auth Version 1 is deprecated and no longer in use.
+ *
+ * @export
+ * @async
+ * @param {{rawPassword: string, authVersion: AuthVersion, salt: string}} param0
+ * @param {string} param0.rawPassword
+ * @param {AuthVersion} param0.authVersion
+ * @param {string} param0.salt
+ * @returns {Promise<{ derivedMasterKeys: string; derivedPassword: string }>}
+ */
+export async function generatePasswordAndMasterKeyBasedOnAuthVersion({
+	rawPassword,
+	authVersion,
+	salt
+}: {
+	rawPassword: string
+	authVersion: AuthVersion
+	salt: string
+}): Promise<{ derivedMasterKeys: string; derivedPassword: string }> {
+	if (authVersion === 1) {
+		// DEPRECATED AND NOT IN USE, JUST HERE FOR BACKWARDS COMPATIBILITY.
+		const derivedPassword = await hashPassword({ password: rawPassword })
+		const derivedMasterKeys = await hashFn({ input: rawPassword })
+
+		return {
+			derivedMasterKeys,
+			derivedPassword
+		}
+	} else if (authVersion === 2) {
+		const derivedKey = await deriveKeyFromPassword({
+			password: rawPassword,
+			salt,
+			iterations: 200000,
+			hash: "sha512",
+			bitLength: 512,
+			returnHex: true
+		})
+		let derivedPassword = derivedKey.substring(derivedKey.length / 2, derivedKey.length)
+		const derivedMasterKeys = derivedKey.substring(0, derivedKey.length / 2)
+
+		derivedPassword = nodeCrypto.createHash("sha512").update(textEncoder.encode(derivedPassword)).digest("hex")
+
+		return {
+			derivedMasterKeys,
+			derivedPassword
+		}
+	} else {
+		throw new Error(`Invalid authVersion: ${authVersion}`)
+	}
+}
 ```
 
 #### Log in
 
-Then, call <ApiEndpointLink endpoint="/v3/login"/> with the user's email, the derived password (not the raw password) and the auth version set to 2. Optionally, also pass the user's two-factor authentication code (if the user doesn't use two-factor authentication, pass `"XXXXXX"` instead). The response will contain the API key and the public/private keys for public-key encryption.
+Then, call <ApiEndpointLink endpoint="/v3/login"/> with the user's email, the derived + hashed password (not the raw password) and the corresponding auth version. Optionally, also pass the user's two-factor authentication code (if the user doesn't use two-factor authentication, pass `"XXXXXX"` instead). The response will contain the API key and the public/private keys for public-key encryption (the private key is encrypted using the user's master keys).
 
-For API requests that require authentication, pass the API key in the `Authorization` HTTP header set to `Bearer <api_key>`. 
+For API requests that require authentication, pass the API key in the `Authorization` HTTP header set to `Bearer <api_key>`.
 
 #### Fetch all master keys
 
 To fetch all master keys, call <ApiEndpointLink endpoint="/v3/user/masterKeys"/> with the master key metadata-encrypted with itself as the key. Metadata-decrypt the fetched master keys with the master key and split the result at `"|"` to get the list of all decryption master keys. The reason for multiple master keys is described in the [Encryption](./encryption#general-information-on-master-keys) guide.
 
 You are now signed in and ready to encrypt and decrypt your traffic!
-
-<span className="muted">This guide will be expanded to include: handling of public/private keys, password changing, ...</span>
-
-<!---
-
-Todo:
-- [ ] add "all endpoints are at ..." general info
-- [x] add links to Encryption guide
-- [ ] maybe the public/private keys need more specific wording
-- [ ] add:
-    - [ ] handling of public/private keys
-    - [ ] changing password and handling of changed master key
-
---->

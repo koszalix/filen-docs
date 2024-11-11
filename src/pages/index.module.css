@@ -4,27 +4,27 @@
  */
 
 .heroBanner {
-  padding: 8rem 0;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+	padding: 8rem 0;
+	text-align: center;
+	position: relative;
+	overflow: hidden;
 }
 
 @media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 4rem 2rem;
-  }
+	.heroBanner {
+		padding: 4rem 2rem;
+	}
 }
 
 .buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  flex-wrap: wrap;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 20px;
+	flex-wrap: wrap;
 }
 
 .buttonComingSoon {
-  cursor: initial !important;
-  opacity: 30%;
+	cursor: initial !important;
+	opacity: 30%;
 }
