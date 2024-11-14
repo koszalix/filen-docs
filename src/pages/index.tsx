@@ -14,8 +14,14 @@ export function HomepageHeader() {
 				>
 					Filen Docs
 				</Heading>
-				<p className="hero__subtitle">Build your own apps and integrations on top of Filen with our API and SDK.</p>
+				<p className="hero__subtitle">Build your own apps and integrations on top of Filen with our CLI, SDK and API.</p>
 				<div className={styles.buttons}>
+					<Link
+						className="button button--secondary button--lg"
+						to="/docs/cli"
+					>
+						CLI
+					</Link>
 					<Link
 						className="button button--secondary button--lg"
 						to="/docs/sdk"
@@ -27,12 +33,6 @@ export function HomepageHeader() {
 						to="/docs/api"
 					>
 						API
-					</Link>
-					<Link
-						className="button button--secondary button--lg"
-						to="/docs/cli"
-					>
-						CLI
 					</Link>
 				</div>
 			</div>

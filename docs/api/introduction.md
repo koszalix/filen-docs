@@ -13,7 +13,7 @@ The Filen API can do everything our first-party clients can, which includes uplo
 
 :::info SKDs
 
-If you're building an application written in JavaScript or TypeScript, we recommend using our [TypeScript SDK](https://github.com/FilenCloudDienste/filen-sdk-ts) which provides developer-friendly wrappings of all API endpoints, and more.
+If you're building an application written in JavaScript or TypeScript, we recommend using our [TypeScript SDK](https://github.com/FilenCloudDienste/filen-sdk-ts), which provides developer-friendly wrappings of all API endpoints, and more.
 
 There is also a [Go SDK](https://github.com/FilenCloudDienste/filen-sdk-go) that provides functionality for uploading/downloading and managing files and directories. It is currently work in progress!
 

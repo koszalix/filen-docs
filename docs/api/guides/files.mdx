@@ -22,7 +22,7 @@ Since all Filen user data is encrypted on the client-side, including directory n
 
 #### File and directory metadata
 
-The metadata of files (including name, mime type, size, timestamp and encryption key) and directories (its name) is always client-side encrypted using the master key, as described in the [Cryptography guide](./cryptography#data-encryption).
+The metadata of files (including name, MIME type, size, timestamp and encryption key) and directories (its name) is always client-side encrypted using the master key, as described in the [Cryptography guide](./cryptography#data-encryption).
 
 #### File chunks
 
@@ -44,7 +44,7 @@ If you want to get a directory's UUID from its path, you need to start at the ro
 
 ### Downloading a file
 
-Once you've got a file's UUID (and other metadata) as described above, you can download it by performing the following steps **for every file chunk**. The number of chunks a file consists of is part of the file metadata, e. g. from <ApiEndpointLink endpoint="/v3/dir/content" slug="get-directory-content" /> or <ApiEndpointLink endpoint="/v3/file" slug="get-file-info" />.
+Once you've gotten a file's UUID (and other metadata) as described above, you can download it by performing the following steps **for every file chunk**. The number of chunks a file consists of is part of the file metadata, e. g. from <ApiEndpointLink endpoint="/v3/dir/content" slug="get-directory-content" /> or <ApiEndpointLink endpoint="/v3/file" slug="get-file-info" />.
 
 After downloading and decrypting every chunk, simply concatenate the bytes to get the original file.
 
