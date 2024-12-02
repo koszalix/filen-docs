@@ -20,7 +20,7 @@ First, call <ApiEndpointLink endpoint="/v3/auth/info" slug="get-auth-info" /> wi
 
 #### Derive key
 
-Use [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) to derive a key from the raw password, using the fetched salt, 200.000 iterations and a key length of 64. Convert the result to a hex string and split it into two parts of equal length. The first part is the password used for logging in, the second part is the encryption master key (see the [Cryptography](./cryptography) guide). The login password is then hashed again using SHA-512. This is the corresponding code from the [TypeScript SDK](../../sdk):
+Use [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2) to derive a key from the raw password, using the fetched salt, 200.000 iterations and a key length of 64. Convert the result to a hex string and split it into two parts of equal length. The first part is the password used for logging in, the second part is the encryption master key (see the [Cryptography](/docs/api/guides/cryptography) guide). The login password is then hashed again using SHA-512. This is the corresponding code from the [TypeScript SDK](/docs/sdk):
 
 ```ts
 /**
@@ -84,6 +84,6 @@ For API requests that require authentication, pass the API key in the `Authoriza
 
 #### Fetch all master keys
 
-To fetch all master keys, call <ApiEndpointLink endpoint="/v3/user/masterKeys"/> with the master key metadata-encrypted with itself as the key. Metadata-decrypt the fetched master keys with the master key and split the result at `"|"` to get the list of all decryption master keys. The reason for multiple master keys is described in the [Cryptography](./cryptography#general-information-on-master-keys) guide.
+To fetch all master keys, call <ApiEndpointLink endpoint="/v3/user/masterKeys"/> with the master key metadata-encrypted with itself as the key. Metadata-decrypt the fetched master keys with the master key and split the result at `"|"` to get the list of all decryption master keys. The reason for multiple master keys is described in the [Cryptography](/docs/api/guides/cryptography#general-information-on-master-keys) guide.
 
 You are now signed in and ready to encrypt and decrypt your traffic!
