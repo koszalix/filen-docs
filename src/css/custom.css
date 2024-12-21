@@ -46,3 +46,8 @@ h3 {
 h4 {
 	text-decoration: rgba(255, 255, 255, 0.4) wavy underline;
 }
+
+/* tab size in listings */
+code {
+	tab-size: 4;
+}
