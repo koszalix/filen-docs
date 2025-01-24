@@ -41,8 +41,10 @@ Example of sync pairs registry:
 		"syncMode": "twoWay",
 		"alias": "documents",
 		"disableLocalTrash": true,
-		"ignore": ["*.lnk"],
+		"ignore": ["example.txt", "*.log"],
 		"excludeDotFiles": true
 	}
 ]
 ```
+
+Note that since this is a JSON file, backslashes (`\`) in strings need to be escaped, e. g. `"C:\\some\\path"`).
