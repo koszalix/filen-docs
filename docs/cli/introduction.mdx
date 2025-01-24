@@ -15,13 +15,28 @@ The Filen CLI provides a set of useful tools for interacting with the cloud:
 
 ## Installation and updates
 
-You can download the latest binaries from the [GitHub release page](https://github.com/FilenCloudDienste/filen-cli/releases/latest).
-Docker images are also available as [`filen/cli`](https://hub.docker.com/repository/docker/filen/cli).
+You can download the latest binaries from the [release page](https://github.com/FilenCloudDienste/filen-cli/releases/latest), or execute the install script (Linux and macOS):
+
+```
+curl -sL https://filen.io/cli.sh | bash
+```
+
+Docker images are also available as [filen/cli](https://hub.docker.com/repository/docker/filen/cli) (see [below](#using-docker)).
 
 The Filen CLI includes an automatic updater that checks for a new release every time the CLI is invoked
 (after checking for updates, it will not check again for the next 10 minutes).
-Invoke the CLI with the `--skip-update` flag to skip checking for updates.
-(Use the `--force-update` flag to check for updates even if it was recently checked.)
+Invoke the CLI with the `--skip-update` flag to skip checking for updates, or use the `--force-update` flag to check for updates even if it was recently checked.
+Use the `--auto-update` flag to skip the confirmation prompt and update automatically (the CLI will still abort after updating).
+
+You can always install any version using `filen install <version>`, `filen install latest` or `filen install canary`.
+
+The CLI is also available as an NPM package, which can be installed with `npm install --global @filen/cli` and then invoked as `filen`. The NPM repository always contains the latest canary releases (see below).
+
+### Canary releases
+
+If you want to be among the first to try out new features and fixes, you can enable canary releases,
+which are early releases meant for a subset of users to test before they are declared as stable.
+To enable or disable canary releases, invoke the CLI with the command `filen canary`.
 
 ## Usage
 
@@ -33,3 +48,23 @@ Global flags:
 -   `--log-file <file>`: write logs to a file
 
 For detailed information on how to use the CLI features, see the respective documentation pages.
+
+## Using Docker
+
+You can run the CLI in a Docker container using the [`filen/cli`](https://hub.docker.com/repository/docker/filen/cli) image.
+
+For example, to run a WebDAV/S3 server in a container, you can use a [Docker Compose](https://docs.docker.com/compose) file similar to this:
+
+```yaml
+services:
+    filen-webdav:
+        image: filen/cli:latest
+        ports:
+            - 80:80
+        command: >
+            --email <...>
+            --password <...>
+            webdav
+            --w-user <...>
+            --w-password <...>
+```
