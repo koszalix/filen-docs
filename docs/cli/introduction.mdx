@@ -49,6 +49,10 @@ Global flags:
 
 For detailed information on how to use the CLI features, see the respective documentation pages.
 
+### Data directory
+
+The data directory is where configuration files, credentials, cache etc. are stored and read from. By default, it is `%APPDATA%/filen-cli` (Windows), `~/Library/Application Support/filen-cli` (macOS) or `$XDG_CONFIG_HOME/filen-cli` or `~/.config/filen-cli` (Unix). If there is a directory named `.filen-cli` at the home directory `~`, it is used instead (for instance, the install script installs to this location). You can overwrite the location using the `--data-dir` flag or the `FILEN_CLI_DATA_DIR` environment variable.
+
 ## Using Docker
 
 You can run the CLI in a Docker container using the [`filen/cli`](https://hub.docker.com/repository/docker/filen/cli) image.
