@@ -64,7 +64,7 @@ info:
           - `/file/version/restore` (restore a file version)
           - `/file/versions` (get all versions of a file)
         - chat:
-          - `/chat/messages` (get chat messaegs)
+          - `/chat/messages` (get chat messages)
           - `/chat/send` (send chat message)
           - `/chat/typing` (send typing events)
           - `/chat/edit` (edit chat message)
