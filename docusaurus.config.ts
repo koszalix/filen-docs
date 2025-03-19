@@ -101,6 +101,12 @@ const config: Config = {
 					label: "API"
 				},
 				{
+					type: "docSidebar",
+					sidebarId: "desktopSidebar",
+					position: "left",
+					label: "DESKTOP"
+				},
+				{
 					href: "https://github.com/FilenCloudDienste",
 					label: "GitHub",
 					position: "right"

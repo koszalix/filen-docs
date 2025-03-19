@@ -1,0 +1,33 @@
+---
+sidebar_position: 9
+slug: /desktop/s3
+---
+
+# Hosting a local S3 server
+
+You can also start a locally hosted S3 server to access already existing S3 object storage and connect it to the Filen cloud.
+
+When connecting to the S3 server you need to set the region to **filen** and enable **s3ForcePathStyle**.
+
+![S3](/img/desktops3.png)
+
+Before you start the local S3 server, please go through the following options and change them if necessary.
+
+-   **Enabled**  
+    This is used to start and stop the local S3 server.  
+    Before you start this process, please have a look at the following settings.
+-   **HTTP Protocol**  
+    Here you can choose between the unsecured HTTP protocol or the secured HTTPS protocol.  
+     _If possible, HTTPS should be selected._
+-   **Hostname**  
+    You can access the local S3 server with the corresponding S3 clients via the address specified here.
+-   **Port**  
+     Here you can specify a specific port that should apply to the S3 server.
+-   **AccessKeyId**  
+     Here you can select an AccessKeyiD to connect to the local S3 server.  
+    _Ideally, you should not use your Filen credentials for this._
+-   **SecretKeyId**  
+     here you can select an SecretKeyId to connect to the local S3 server.  
+    _Ideally, you should not use your Filen credentials for this_
+
+Once you have set everything according to your preferences, you can start or stop the local S3 server with the first option.

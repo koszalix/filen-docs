@@ -34,6 +34,12 @@ export function HomepageHeader() {
 					>
 						API
 					</Link>
+					<Link
+						className="button button--secondary button--lg"
+						to="/docs/desktop"
+					>
+						DESKTOP
+					</Link>
 				</div>
 			</div>
 		</header>
