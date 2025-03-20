@@ -107,6 +107,12 @@ const config: Config = {
 					label: "DESKTOP"
 				},
 				{
+					type: "docSidebar",
+					sidebarId: "webSidebar",
+					position: "left",
+					label: "WEB"
+				},
+				{
 					href: "https://github.com/FilenCloudDienste",
 					label: "GitHub",
 					position: "right"
