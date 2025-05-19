@@ -38,15 +38,21 @@ A new window will open where you have to set some basic preferences.
 # Sync modes
 
 -   **Two Way**  
-    Mirror every action in both directions.
+    Mirror every action in both directions.  
+    _Renaming, deleting & moving is applied to both sides._
 -   **Local to Cloud**  
-    Mirror every action done locally to the cloud but never act on cloud changes.
+    Mirror every action done locally to the cloud but never act on cloud changes.  
+    _Renaming, deleting & moving is only transferred to the cloud, but not the other way around._
 -   **Local Backup**  
-    Only upload data to the cloud, never delete anything or act on cloud changes.
+    Only upload data to the cloud, never delete anything or act on cloud changes.  
+    _Renaming & moving is transferred to the cloud, but not local deletions._
 -   **Cloud To Local**  
-    Mirror every action done in the cloud locally but never act on local changes.
+    Mirror every action done in the cloud locally but never act on local changes.  
+    _Renaming, deleting & moving is only transferred to the local side, but not the other way around._
+
 -   **Cloud Backup**  
-    Only download data from the cloud, never delete anything or act on local changes.
+    Only download data from the cloud, never delete anything or act on local changes.  
+    _Renaming & moving is transferred to the local side, but not cloud deletions._
 
 Once you have set everything, the sync starts briefly.  
 You can then see the current processes via the **Transfers** tab at the top left.
